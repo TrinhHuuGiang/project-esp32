@@ -1,0 +1,10 @@
+- VsCode không thể xác định được đường dẫn tới các thư viện của eps32 nên cần thêm 1 vài theo tác:
+    - mở file `c_cpp_properties.json`:
+        - thông qua Ctrl+Shift+P
+        - gõ `C/C++:Edit Configurations` để mở file JSON
+- Trong phần `"includePath"` ta thêm 1 đường dẫn vào mảng này:
+    - Tìm đến thư mục cài Espidf
+    - copy đường dẫn đến thư mục và ghi thêm vào `includePath`
+    - chỉnh lại dấu đường dẫn `/` để tránh bị lỗi vì vscode dùng dấu `/` để viết đường dẫn.
+    - Thêm `/**` vào cuối đường link đến folder nếu thiếu.
+    - Lưu lại là xong
