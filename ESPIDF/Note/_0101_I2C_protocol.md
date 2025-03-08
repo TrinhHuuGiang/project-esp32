@@ -25,7 +25,7 @@
 
 # Giao tiếp
 - Khung dữ liệu:  
-    [i2c_frame](img/_0101_i2c_frame.jpg)  
+    ![i2c_frame](img/_0101_i2c_frame.jpg)  
     - Điều kiện bắt đầu:
         - Các thiết bị slave đang trong trạng thái nghỉ
         - `SDA` đột nhiện bị kéo xuống thấp và đánh thức các thiết bị trong mạng.
