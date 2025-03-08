@@ -10,6 +10,9 @@
 
 # Thiết kế
 - 2 chân tín hiệu: SDA (serial data line), SCL (serial clock line).
+- Hoạt động theo cơ chế half-duplex
+- SCL chỉ có ở master
+- SDA có thể hoạt động 2 chiều bidirection, ở chế độ input khi lắng nghe và output khi gửi dữ liệu
 - Cả 2 chân tín hiệu đều cần có điện trở pull-up.
 - Tốc độ tối đa giảm dần theo khoảng cách:
     - Chế dộ tốc độ thấp: 10kbps, vài mét
@@ -39,15 +42,17 @@
             - Ngay khi `SCL` ở trên vừa kéo xuống thì tín hiệu phải được gửi lên `SDA`
             - thời điểm `SCL` từ thấp lên cao chính là lúc lấy mẫu
             - Quá trình gửi lặp lại khi `SCL` tạo sườn xuống và lấy mẫu khi `SCL` tạo sườn lên.
-    - ACK/NACK bit:
+    - ACK/NACK bit (`giai đoạn tìm kiếm`):
         - Nếu có 1 slave có địa chỉ trùng nó sẽ gửi 1 bit 0 lên đường truyền.
         - Nếu không có slave nào thì đường truyền luôn ở mức cao do điện trở pull-up
     - truyền nhận 8 bit dữ liệu:
         - sau đó là 8bit dữ liệu được trao đổi từ master đến slave hoặc từ slave về master tùy chế độ đọc ghi ở bit R/w mode.
-    - ACK/NACK bit bên nhận:
-        - sau khi nhận đủ thì bên nhận sẽ gửi ACK bằng cách kéo SDA về 0
-        - nếu không thì vẫn để nguyên pull-up
+    - ACK/NACK bit bên nhận (`Giai đoạn tiếp tục hay kết thúc`):
+        - sau khi nhận đủ thì bên nhận sẽ gửi:
+            - ACK bằng cách kéo SDA về 0 nếu họ muốn nhận thêm 8 bit dữ liệu tiếp theo
+            - NACK bằng cách không thả cho pull-up, sau đó bên gửi sẽ biết là không cần gửi thêm.
+                - Điều này đảm bảo sau đó bên gửi không gửi nữa để tránh xung đột đường truyền.
     - Điều kiện kết thúc:
         - sau đó master có nhiệm vụ chuyển tín hiệu kết thúc lên đường SDA:
-            - Nếu trước đó là ACK (0): tín hiệu kết thúc là khi `SCL` được kéo lên cao, sau đó `SDA` mới được kéo lên cao
-            - Nếu trước đó là NACK (1): `SDA` không cần làm gì thêm cả
+            - Ngay sau khi nhân NACK quá trình kết thúc bắt đầu.
+            - Tín hiệu kết thúc là khi `SCL` được kéo lên cao, ngay sau đó `SDA` mới được kéo lên cao
