@@ -52,21 +52,29 @@
     |0|A6/A7|1|0|1|0|0|1|1|X0|`Hiển thị thường hoặc đảo sáng` <br> - (Mặc định Reset) Nếu X0=0 thì là A6h, bit 0 là tắt, bit 1 là bật <br> - Nếu X0=1 thì là A7h, thì đảo lại|
     |0|AE/AF|1|0|1|0|0|0|1|X0|`Bật tắt màn hình` <br> - (Mặc định Reset) Nếu X0=0 thì là AEh, màn hình tắt đi <br> - Nếu X0=1 thì là AFh, bật màn hình lên|
     |<br>|
-    |-|-|-|-|-|-|-|-|-|-|**Khối lệnh quản lý địa chỉ** <br> *(Cần gửi liên tiếp 7 lệnh)*|
+    |-|-|-|-|-|-|-|-|-|-|**Khối lệnh quản lý địa chỉ ghi dữ liệu**|
+    |0|20|0|0|1|0|0|0|0|0|`Chọn chế độ xử lý ghi địa chỉ` <br> Theo sau là 1 byte chọn chế độ|
+    |-|A[7:0]|-|-|-|-|-|-|A1|A0|- `00b` là Chế độ xử lý địa chỉ theo chiều ngang <br> Tự động ghi từng Page theo chiều ngang từng cụng 8bit common, tự động xuống Page tiếp theo<br> - `01b` là Chế độ xử lý địa chỉ theo chiều dọc <br> Tự động ghi theo chiều dọc từng segment theo cụm 8bit common, tự động nhảy sang segment kế nếu đã đến cuối <br> - `10b` là Chế độ xử lý địa chỉ theo Page <br> Tự động ghi lại Page sau khi quét đến cuối Page đó <br> - `11b` không dùng <br>|
+    |0|B0~B7|1|0|1|1|0|X2|X1|X0|`(Only Page Addressing mode)` <br> `Chọn Page`|
+    |0|00~0F|0|0|0|0|X3|X2|X1|X0|`(Only Page Addressing mode)` <br> `Cài 4bit thấp của cột bắt đầu ghi`|
+    |0|10~1F|0|0|0|1|X3|X2|X1|X0|`(Only Page Addressing mode)` <br> `Cài 4bit cao của cột bắt đầu ghi`|
+    |0|21|0|0|1|0|0|0|0|1|`(Only Horizontal/Vertical mode)` <br> `Cài đặt cột bắt đầu và kết thúc ghi`|
+    |0|22|0|0|1|0|0|0|1|0|`(Only Horizontal/Vertical mode)` <br> `Cài đặt Page bắt đầu và Page kết thúc ghi`|
     |<br>|
     |-|-|-|-|-|-|-|-|-|-|**Khối lệnh clock**|
     |0|D5|1|1|0|1|0|1|0|1|`Cấu hình clock hiển thị` <br> *(Cần gửi liên tiếp lệnh này và 1 lệnh cấu hình)*|
     |-|A[7:0]|A7|A6|A5|A4|A3|A2|A1|A0|- A[3:0] cấu hình hệ số chia D cho DCLK <br> Hệ số chia là A[3:0] + 1. Ví dụ 0000b là chia 1 <br> - A[7:4] cấu hình tăng tần số nguồn dao động Fosc <br> Mặc định là 1000b khoảng 370khz. Có thể chỉnh từ 0000b đến 1111b|
     |0|D9|1|1|0|1|1|0|0|1|`Cấu hình clock Pre-charge` <br> *(Cần gửi liên tiếp lệnh này và 1 lệnh cấu hình)*|
     |-|A[7:0]|A7|A6|A5|A4|A3|A2|A1|A0|- A[3:0] Pre-charge-1 giai đoạn xả điện tích dữ <br> - A[7:4] Pre-charge-2 giai đoạn nạp điện tích trước trước khi quét tới <br> (Mặc định Reset) 22h|
+
+    |D/C|Hexa code|D7|D6|D5|D4|D3|D2|D1|D0|***Khối lệnh cấu hình nâng cao***|
+    |-|-|-|-|-|-|-|-|-|-|-|
+    |-|-|-|-|-|-|-|-|-|-|**Khối lệnh cấu hình phần cứng**|
     |<br>|
-    |-|-|-|-|-|-|-|-|-|-|***Khối lệnh cấu hình nâng cao***|
-    |-|-|-|-|-|-|-|-|-|-|**Khối lệnh cấu hình phần cứng** <br> *(Cần gửi liên tiếp 7 lệnh)*|
-    |<br>|
-    |-|-|-|-|-|-|-|-|-|-|**Khối lệnh cuộn** <br> *(Cần gửi liên tiếp 7 lệnh)*|
-    |0|D5|1|1|0|1|0|1|0|1|`Cuộn ngang` <br> *(Cần gửi liên tiếp lệnh này và 1 lệnh cấu hình)*|
-    |0|D5|1|1|0|1|0|1|0|1|`Cuộn chéo` <br> *(Cần gửi liên tiếp lệnh này và 1 lệnh cấu hình)*|
-    |0|D5|1|1|0|1|0|1|0|1|`Cuộn dọc` <br> *(Cần gửi liên tiếp lệnh này và 1 lệnh cấu hình)*|
+    |-|-|-|-|-|-|-|-|-|-|**Khối lệnh cuộn**|
+    |||||||||||`Cuộn ngang` <br> *(Cần gửi liên tiếp lệnh này và 1 lệnh cấu hình)*|
+    |||||||||||`Cuộn chéo` <br> *(Cần gửi liên tiếp lệnh này và 1 lệnh cấu hình)*|
+    |||||||||||`Cuộn dọc` <br> *(Cần gửi liên tiếp lệnh này và 1 lệnh cấu hình)*|
 
 
 
