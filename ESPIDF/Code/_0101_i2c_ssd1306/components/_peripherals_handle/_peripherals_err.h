@@ -9,9 +9,13 @@
 
 typedef enum
 {
-    OK = 0 ,
-    ALLOC_FAILED,
-    SETUP_FAILED
+    PERIPH_OK = 0 ,
+    I2C_MASTER_ALLOC_FAILED,
+    I2C_MASTER_SETUP_FAILED,
+    I2C_MASTER_INSTALL_FAILED,
+    I2C_MASTER_UNINST_FAILED,
+    I2C_MASTER_SEND_COMMAND_FAILED,
+    I2C_MASTER_GET_DATA_FAILED
 
 } _peripherals_err_t;
 
@@ -21,8 +25,8 @@ typedef enum
  * **********************************************************
  */
 /**
- * @brief Print line, file, error code
+ * @brief Print error code, file, line, comment
  */
-void send_peripheral_err_location(_peripherals_err_t code, char* file, int line);
+void send_peripheral_err_location(_peripherals_err_t code, char* file, int line,const char* comment);
 
 #endif

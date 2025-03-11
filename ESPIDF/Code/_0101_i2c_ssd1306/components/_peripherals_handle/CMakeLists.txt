@@ -1,2 +1,2 @@
-idf_component_register(SRCS "i2c_handle.c" "_peripherals_err.c"
+idf_component_register(SRCS "_peripherals_err.c" "i2c_master_handle.c"
                     INCLUDE_DIRS ".")
