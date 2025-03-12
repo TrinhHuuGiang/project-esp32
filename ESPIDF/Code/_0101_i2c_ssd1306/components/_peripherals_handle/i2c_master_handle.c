@@ -109,8 +109,6 @@ _peripherals_err_t i2c_master_send_command_to_7bit_addr(uint8_t adr_7bit, i2c_ma
         return I2C_MASTER_SEND_COMMAND_FAILED;
     }
 
-    fprintf(stderr,"\n hehe \n");
-
     return PERIPH_OK;
 }
 

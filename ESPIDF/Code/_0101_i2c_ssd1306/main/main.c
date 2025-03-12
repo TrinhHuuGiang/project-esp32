@@ -42,8 +42,6 @@ void app_main(void)
 
     i2c_config_t* master_conf=NULL;
 
-    int status = 1;
-
     // config i2c master
 
     i2c_master_init_config(&master_conf);
@@ -58,10 +56,19 @@ void app_main(void)
 
     i2c_ssd1306_on_off_screen(SSD1306_ADDR, 1);
 
+    i2c_ssd1306_choose_addressing_mode(SSD1306_ADDR, I2C_SSD1306_HOR_ADDR_MODE);
+
+    uint8_t count = 0;
+    uint8_t reverse_state = 0;
     while (1)
     {   
-        status = 1- status;
-        fprintf(stderr,"\nStatus: %d, %d\n", status, i2c_ssd1306_turn_on_all_led(SSD1306_ADDR, status));
-        vTaskDelay(pdMS_TO_TICKS(1000)); // Nghỉ 1000ms (1 giây)
+        i2c_ssd1306_print_something(SSD1306_ADDR, epd_bitmap_allArray[count], BIT_MAP_IMAGE_128x64_USERDEFINE_SIZE);
+        if((++count) >= BIT_MAP_IMAGE_128x64_USERDEFINE_QUANTITY)
+        {
+            count=0;
+            reverse_state = 1- reverse_state;
+            i2c_ssd1306_reverse_light_display(SSD1306_ADDR, reverse_state);
+        }
+        vTaskDelay(pdMS_TO_TICKS(1000)); // Nghỉ 10ms (1 giây)
     }
 }
