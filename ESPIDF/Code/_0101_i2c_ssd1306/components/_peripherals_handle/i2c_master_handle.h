@@ -113,7 +113,7 @@ _peripherals_err_t i2c_master_free_config(i2c_config_t* master_conf);
  * @retval I2C_MASTER_SEND_COMMAND_FAILED : if failed
  * @retval PERIPH_OK : if success
  */
-_peripherals_err_t i2c_master_send_command_to_7bit_addr(uint8_t adr_7bit, i2c_master_list_t* list_command, TickType_t time_out);
+_peripherals_err_t i2c_master_send_command_to_7bit_addr(uint8_t adr_7bit, i2c_master_list_t list_command, TickType_t time_out);
 
 /**
  * @brief Get array of 8bit data from slave

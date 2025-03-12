@@ -88,14 +88,14 @@ _peripherals_err_t i2c_master_free_config(i2c_config_t* master_conf)
 }
 
 // master send command
-_peripherals_err_t i2c_master_send_command_to_7bit_addr(uint8_t adr_7bit, i2c_master_list_t* list_command, TickType_t time_out)
+_peripherals_err_t i2c_master_send_command_to_7bit_addr(uint8_t adr_7bit, i2c_master_list_t list_command, TickType_t time_out)
 {
     esp_err_t ret;
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
 
     ret = i2c_master_start(cmd);
     if(ret == ESP_OK) ret = i2c_master_write_byte(cmd, (adr_7bit << 1) | I2C_MASTER_WRITE, 1);
-    if(ret == ESP_OK) ret = i2c_master_write(cmd, list_command->list_ptr, list_command->list_size, 1);
+    if(ret == ESP_OK) ret = i2c_master_write(cmd, list_command.list_ptr, list_command.list_size, 1);
     if(ret == ESP_OK) ret = i2c_master_stop(cmd);
     if(ret == ESP_OK) ret = i2c_master_cmd_begin(I2C_MASTER_PORT, cmd, pdMS_TO_TICKS(time_out));
 
@@ -108,6 +108,8 @@ _peripherals_err_t i2c_master_send_command_to_7bit_addr(uint8_t adr_7bit, i2c_ma
         #endif
         return I2C_MASTER_SEND_COMMAND_FAILED;
     }
+
+    fprintf(stderr,"\n hehe \n");
 
     return PERIPH_OK;
 }

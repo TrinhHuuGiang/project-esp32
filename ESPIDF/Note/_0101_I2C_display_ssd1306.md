@@ -59,7 +59,11 @@
     |0|00~0F|0|0|0|0|X3|X2|X1|X0|`(Only Page Addressing mode)` <br> `Cài 4bit thấp của cột bắt đầu ghi`|
     |0|10~1F|0|0|0|1|X3|X2|X1|X0|`(Only Page Addressing mode)` <br> `Cài 4bit cao của cột bắt đầu ghi`|
     |0|21|0|0|1|0|0|0|0|1|`(Only Horizontal/Vertical mode)` <br> `Cài đặt cột bắt đầu và kết thúc ghi`|
+    |0|A[6:0]|-|A6|A5|A4|A3|A2|A1|A0|`Cột bắt đầu có giá trị từ 0 - 127, reset 0|
+    |0|B[6:0]|-|B6|B5|B4|B3|B2|B1|B0|`Cột kết thúc từ 0 - 127, reset 127|
     |0|22|0|0|1|0|0|0|1|0|`(Only Horizontal/Vertical mode)` <br> `Cài đặt Page bắt đầu và Page kết thúc ghi`|
+    |0|A[2:0]|-|-|-|-|-|A2|A1|A0|`Page bắt đầu có giá trị từ 0 - 7, reset 0|
+    |0|B[2:0]|-|-|-|-|-|B2|B1|B0|`Page kết thúc từ 0 - 7, reset 7|
     |<br>|
     |-|-|-|-|-|-|-|-|-|-|**Khối lệnh clock**|
     |0|D5|1|1|0|1|0|1|0|1|`Cấu hình clock hiển thị` <br> *(Cần gửi liên tiếp lệnh này và 1 lệnh cấu hình)*|
@@ -77,6 +81,11 @@
     |||||||||||`Cuộn dọc` <br> *(Cần gửi liên tiếp lệnh này và 1 lệnh cấu hình)*|
 
 
-
-    
-
+# Master gửi dữ liệu qua i2c
+- ![i2c_master_send](img/_0101_i2c_master_i2c_bus_format.png)
+- Sau bước thiết lập địa chỉ. Ta bắt đầu gửi các lệnh hoặc data cho màn hình
+- Khi Co = 0 báo hiệu rằng dữ liệu theo sau là dữ liệu hoàn toàn và không có byte điều khiển nào khác.
+- Khi Co = 1 báo hiệu rằng có cả dữ liệu và lệnh sẽ được gửi đi:
+    - Khi D/C = 0 thì byte kế nó là 1 lệnh.
+    - Khi D/C = 1 thì byte kế nó là data.
+- Cả khung gồm Co, D/C và 6bit 0 đi kèm là khung điều khiển.
