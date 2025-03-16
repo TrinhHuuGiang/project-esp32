@@ -10,6 +10,7 @@
  */
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 #include "i2c_master_handle.h"
 #include "i2c_ssd1306_bitmap.h"
@@ -21,8 +22,8 @@
 #define I2C_SSD1306_PAGE_ADDR_MODE  (0x02)
 
 // time out send data
-#define I2C_SSD1306_SEND_DATA_TIMEOUT (100) // 100 ms ~1/100k * 128 x 64 bit / 8 * (8+1) = 92.16ms
-                                            // :) this time suitable for case send max data ~ 1 frame 128x64
+#define I2C_SSD1306_SEND_DATA_TIMEOUT (200) // require 100 ms ~1/100k * 128 x 64 bit / 8 * (8+1) = 92.16ms
+                                            // double require time :) this time suitable for case send max data ~ 1 frame 128x64
 
 // Control command
 #define I2C_SSD1306_SEND_COMMAND      (0x80) // Case Co = 1, D/C = 0 -> send command
