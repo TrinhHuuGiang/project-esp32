@@ -17,7 +17,7 @@ void send_peripheral_err_location(_peripherals_err_t code, char* file, int line,
 {
     if(code == PERIPH_OK)
     {
-        ESP_LOGD("PHERIPH","\n[Err code - %d] [%s] [%d] [%s]\n", code, file, line, comment);
+        ESP_LOGW("PHERIPH","\n[Err code - %d] [%s] [%d] [%s]\n", code, file, line, comment);
     }
     else
     {

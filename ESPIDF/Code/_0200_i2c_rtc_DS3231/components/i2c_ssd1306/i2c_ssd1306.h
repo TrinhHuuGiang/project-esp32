@@ -143,6 +143,9 @@ uint8_t i2c_ssd1306_hv_addr_choose_group_segment(uint8_t addr, uint8_t segment_s
  * @brief Send messages to print
  * 
  * @note After set up where to write data, call this function and enter array 8bit data were set
+ * @note This function copy array of content to maximun 1 image 128x64 = 1KB will create on RAM
+ * @note sure that dont send any thing too big, and remember I2C_SSD1306_SEND_DATA_TIMEOUT is 
+ * @note calculated for 1 image 128x64
  * 
  * @param content pointer to array 8bit data you want to print
  * @param size_content size of array uint8_t
