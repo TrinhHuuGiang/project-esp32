@@ -1,3 +1,7 @@
+// note: Only communicate with only 1 device at a time
+// default using i2c num 0
+// use i2c master in special task to avoid busy waiting 
+
 #ifndef _I2C_MASTER_HANDLE_H_
 #define _I2C_MASTER_HANDLE_H_
 
@@ -38,11 +42,19 @@ typedef struct
     uint32_t list_size;
 }i2c_master_list_t;
 
+
+
+
+
+
 /**
  * **********************************************************
  * APIs
  * **********************************************************
  */
+
+// =================================== Prepare config, free config ===================================
+// =================================== =========================== ===================================
 
 /**
  * @brief Initial master configuration struct
@@ -62,6 +74,24 @@ typedef struct
  */
 _peripherals_err_t i2c_master_init_config(i2c_config_t* master_conf);
 
+
+/**
+ * @brief Free initial master configuration struct after install driver
+ * 
+ * @note After install driver, this struct no longer used
+ * 
+ * @param master_conf pointer (i2c_config_t**) to pointer (i2c_config_t*)
+ * 
+ * @retval - PERIPH_OK : always ok :v just free allocate
+ */
+_peripherals_err_t i2c_master_free_config(i2c_config_t* master_conf);
+
+
+
+
+
+// =================================== Install & uninstall ===================================
+// =================================== =================== ===================================
 
 /**
  * @brief Set up hardware from master configuration struct
@@ -88,16 +118,25 @@ _peripherals_err_t i2c_master_setup_hardware(const i2c_config_t* master_conf);
  */
 _peripherals_err_t i2c_master_install_driver(const i2c_config_t* master_conf);
 
+
 /**
- * @brief Free initial master configuration struct after install driver
+ * @brief Delete driver to stop
  * 
- * @note After install driver, this struct no longer used
+ * @note Delete driver after no longer used
  * 
- * @param master_conf pointer (i2c_config_t**) to pointer (i2c_config_t*)
+ * @param None
  * 
- * @retval - PERIPH_OK : always ok :v just free allocate
+ * @retval I2C_MASTER_UNINST_FAILED : if failed
+ * @retval PERIPH_OK : if success
  */
-_peripherals_err_t i2c_master_free_config(i2c_config_t* master_conf);
+_peripherals_err_t i2c_master_un_install_driver();
+
+
+
+
+
+// =================================== Exchange data ===================================
+// =================================== ============== ===================================
 
 /**
  * @brief Send array of 8bit commands have prepared
@@ -129,19 +168,6 @@ _peripherals_err_t i2c_master_send_command_to_7bit_addr(uint8_t adr_7bit, i2c_ma
  * @retval PERIPH_OK : if success
  */
 _peripherals_err_t i2c_master_get_data_from_7bit_addr(uint8_t adr_7bit, i2c_master_list_t* list_command, TickType_t time_out);
-
-
-/**
- * @brief Delete driver to stop
- * 
- * @note Delete driver after no longer used
- * 
- * @param None
- * 
- * @retval I2C_MASTER_UNINST_FAILED : if failed
- * @retval PERIPH_OK : if success
- */
-_peripherals_err_t i2c_master_un_install_driver();
 
 
 #endif

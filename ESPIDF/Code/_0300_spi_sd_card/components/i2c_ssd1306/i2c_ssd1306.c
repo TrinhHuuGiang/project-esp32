@@ -368,9 +368,48 @@ uint8_t i2c_ssd1306_print_something(uint8_t addr, const uint8_t* content, u_int3
     return 0;
 }
 
+// clear screen
+uint8_t i2c_ssd1306_clear_screen(uint8_t addr, uint8_t addr_mode)
+{
+    uint8_t* empty_CGRAM = NULL;
+
+    // create 0 data write to CGRAM
+    empty_CGRAM = calloc(1024, sizeof(uint8_t)); // 128seg * 8page
+    if(empty_CGRAM == NULL)
+    {
+        return 1;
+    }
+
+    // horizontal mode
+    if(i2c_ssd1306_choose_addressing_mode(addr, I2C_SSD1306_HOR_ADDR_MODE))
+    {
+        free(empty_CGRAM);
+        return 2;
+    }
+
+    // print
+    if(i2c_ssd1306_print_something(addr, empty_CGRAM, 1024))
+    {
+        free(empty_CGRAM);
+        return 3;
+    }
+
+    // free data
+    free(empty_CGRAM);
+
+    // recover old mode
+    if(i2c_ssd1306_choose_addressing_mode(addr, addr_mode))
+    {
+        return 4;
+    }
+
+    // ok
+    return 0;
+}
+
 
 // convert to ASCII and print
-uint8_t i2c_ssd1306_convert_and_print_ASCII_bitmap(uint8_t addr, void* raw_content, uint8_t type_data)
+uint8_t i2c_ssd1306_convert_and_print_ASCII_bitmap(uint8_t addr,const void* raw_content, uint8_t type_data)
 {
     uint32_t size_content = 0;
 
@@ -406,21 +445,22 @@ uint8_t i2c_ssd1306_convert_and_print_ASCII_bitmap(uint8_t addr, void* raw_conte
             if(content_8bit == NULL)
             {return 3;}
 
-
             // start convert
-            float number_input = 0;
             if (type_data == I2C_SSD1306_DATA_TYPE_TO_PRINT_INT32)
-            { number_input = (float) (*(int*)raw_content);}
+            { 
+                if (sprintf(content_8bit, "%d", *(int*)raw_content)<0)
+                {
+                    free(content_8bit);
+                    return 4; // sprintf return negative number unkown error
+                }
+            }
             else
-            { number_input = *(float*)raw_content;}
-
-            int inte_part = (int)(number_input);
-            int frac_part = (int)round(fabs((number_input) - inte_part)*1000000.0);
-            
-            if(sprintf(content_8bit, "%d,%d", inte_part, frac_part)<0)
             {
-                free(content_8bit);
-                return 4; // sprintf return negative number unkown error
+                if (sprintf(content_8bit, "%.6f", *(float*)raw_content)<0)
+                {
+                    free(content_8bit);
+                    return 4; // sprintf return negative number unkown error
+                }
             }
 
             size_content = strlen(content_8bit);

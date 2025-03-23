@@ -80,9 +80,12 @@ _peripherals_err_t i2c_master_free_config(i2c_config_t* master_conf)
 {
     i2c_config_t** master_conf_addr = (i2c_config_t**)master_conf;
 
-    free(*master_conf_addr);
+    if((*master_conf_addr) != NULL)
+    {
+        free(*master_conf_addr);
 
-    *master_conf_addr = NULL; // point to NULL
+        *master_conf_addr = NULL; // point to NULL
+    }
 
     return PERIPH_OK;
 }

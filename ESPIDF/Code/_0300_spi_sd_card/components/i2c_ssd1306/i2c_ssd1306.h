@@ -23,8 +23,9 @@
 #define I2C_SSD1306_PAGE_ADDR_MODE  (0x02)
 
 // time out send data
-#define I2C_SSD1306_SEND_DATA_TIMEOUT (200) // require 100 ms ~1/100k * 128 x 64 bit / 8 * (8+1) = 92.16ms
+#define I2C_SSD1306_SEND_DATA_TIMEOUT (500) // require 100 ms ~1/100k * 128 x 64 bit / 8 * (8+1) = 92.16ms
                                             // double require time :) this time suitable for case send max data ~ 1 frame 128x64
+                                            // 500 is fine for all case
 
 // Control command
 #define I2C_SSD1306_SEND_COMMAND      (0x80) // Case Co = 1, D/C = 0 -> send command
@@ -60,6 +61,9 @@
 #define I2C_SSD1306_DATA_TYPE_TO_PRINT_STRING   (1)
 #define I2C_SSD1306_DATA_TYPE_TO_PRINT_INT32   (2)
 #define I2C_SSD1306_DATA_TYPE_TO_PRINT_FLOAT    (3)
+
+// convenience string
+#define I2C_SSD1306_EMPTY_PAGE "                "
 
 /**
  * **********************************************************
@@ -184,21 +188,32 @@ uint8_t i2c_ssd1306_hv_addr_choose_group_segment(uint8_t addr, uint8_t segment_s
  */
 uint8_t i2c_ssd1306_print_something(uint8_t addr, const uint8_t* content, u_int32_t size_content);
 
+/**
+ * @brief Send empty segment to clean CGRAM
+ * 
+ * @param addr_mode clean will change to horizontal mode. Sure enter addr_mode to recover old mode
+ * 
+ * @return 0 ok, !0 fail
+ */
+uint8_t i2c_ssd1306_clear_screen(uint8_t addr, uint8_t addr_mode);
 
 /**
  * @brief Auto format content to ASCII bitmap and send to display
  * 
- * @note After set up where to write data, call this function
- * @note Input with the data type described in the macro section.
- * @note Any ASCII >= 0x7F and UTF-8 >= 0x7F will be ignore
- * @note float type automatically rounds up to 6 fractional parts
- * @note int type auto print as float with ',0'
+ * @note After setting up where to write data, call this function.
+ * @note Input data types must follow those defined in the macro section.
+ * @note Any ASCII >= 0x7F and UTF-8 >= 0x7F will be ignored.
+ * @note Float values are automatically rounded to 6 decimal places.
+ * @warning Warning: This function assumes the input data type is int, float, or string.
+ * @warning If you pass a pointer to uint16_t or a smaller type, the function will expand and read all 32 bits (including 16 bits of garbage).
+ * @warning This may cause unexpected behavior if the input type is incorrect.
+ * @warning Always ensure that the input is int, float, or string.
  * 
- * @param content pointer to data
- * @param type_of_data cast type of data, now support string, int32, float
+ * @param content Pointer to data
+ * @param type_of_data Cast type of data; currently supports string, int32, and float.
  * 
- * @return 0 ok, !0 fail
+ * @return 0 if successful, non-zero if failed.
  */
-uint8_t i2c_ssd1306_convert_and_print_ASCII_bitmap(uint8_t addr, void* content, uint8_t type_data);
+uint8_t i2c_ssd1306_convert_and_print_ASCII_bitmap(uint8_t addr, const void* content, uint8_t type_data);
 
 #endif
