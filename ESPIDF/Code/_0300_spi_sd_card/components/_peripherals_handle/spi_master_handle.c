@@ -188,6 +188,11 @@ _peripherals_err_t spi_master_register_device_config(const spi_device_interface_
 // Un-register device
 _peripherals_err_t spi_master_un_register_device_config(spi_device_handle_t device_handle)
 {
+    if(device_handle == NULL)
+    {
+        return PERIPH_OK;
+    }
+
     esp_err_t ret = spi_bus_remove_device(device_handle); // << this funtion will remove device and free 'device_handle'
 
     if(ret!=ESP_OK)
@@ -197,6 +202,8 @@ _peripherals_err_t spi_master_un_register_device_config(spi_device_handle_t devi
         #endif
         return SPI_MASTER_UN_REG_DEVICE_CONFIG_FAILED;
     }
+
+    device_handle = NULL; // if remove done
 
     return PERIPH_OK;
 
@@ -225,7 +232,7 @@ _peripherals_err_t spi_master_un_install_bus_config()
 _peripherals_err_t spi_master_prepare_transaction( spi_transaction_ext_t* spi_expand_transaction,
     uint8_t command_len, uint8_t address_len, uint8_t dummy_len,
     uint16_t command_data, uint64_t address_data, 
-    size_t tx_data_len, size_t rx_data_len)
+    size_t tx_data_len_by_bit, size_t rx_data_len_by_bit)
 {
     spi_transaction_ext_t** spi_expand_transaction_addr = (spi_transaction_ext_t**)spi_expand_transaction;
 
@@ -249,16 +256,16 @@ _peripherals_err_t spi_master_prepare_transaction( spi_transaction_ext_t* spi_ex
     (*spi_expand_transaction_addr)->base.cmd = command_data;
     (*spi_expand_transaction_addr)->base.addr = address_data;
 
-    (*spi_expand_transaction_addr)->base.length = tx_data_len;
-    (*spi_expand_transaction_addr)->base.rxlength = rx_data_len;
+    (*spi_expand_transaction_addr)->base.length = tx_data_len_by_bit;
+    (*spi_expand_transaction_addr)->base.rxlength = rx_data_len_by_bit;
 
     (*spi_expand_transaction_addr)->base.user = NULL; // no using this pointer :)
 
     // set buffer
-    size_t remain_x = tx_data_len % 4;
+    size_t remain_x = tx_data_len_by_bit % 32;
     size_t buf_size = 0;
-    if(remain_x != 0) buf_size = tx_data_len + 4 - remain_x;
-    else buf_size = tx_data_len;
+    if(remain_x != 0) buf_size = (tx_data_len_by_bit + 32 - remain_x) / 8;
+    else buf_size = tx_data_len_by_bit / 8;
 
     (*spi_expand_transaction_addr)->base.tx_buffer = heap_caps_malloc(buf_size, MALLOC_CAP_DMA);
 
@@ -276,9 +283,9 @@ _peripherals_err_t spi_master_prepare_transaction( spi_transaction_ext_t* spi_ex
         return SPI_MASTER_ALLOC_FAILED;
     }
 
-    remain_x = rx_data_len % 4;
-    if(remain_x != 0) buf_size = rx_data_len + 4 - remain_x; 
-    else buf_size = rx_data_len;
+    remain_x = rx_data_len_by_bit % 32;
+    if(remain_x != 0) buf_size = (rx_data_len_by_bit + 32 - remain_x) / 8; 
+    else buf_size = rx_data_len_by_bit / 8;
 
     (*spi_expand_transaction_addr)->base.rx_buffer = heap_caps_malloc(buf_size, MALLOC_CAP_DMA);
 

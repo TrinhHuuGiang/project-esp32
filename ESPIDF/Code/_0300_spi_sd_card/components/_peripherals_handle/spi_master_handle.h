@@ -154,7 +154,6 @@ _peripherals_err_t spi_master_register_device_config(const spi_device_interface_
  * 
  * @note spi_device_handle_t is pointer to struct spi_device_t
  * @note - [typedef struct spi_device_t *spi_device_handle_t]
- * @note - After this function, the memory that 'device_handle' points to will be freed but will not automatically be set to NULL.
  * @note - So now it will point to a un-safe memory.
  * @note - Point it to NULL or no re-use for safe.
  * 
@@ -186,6 +185,12 @@ _peripherals_err_t spi_master_un_install_bus_config();
  * @param command_data and address_data is data of these 
  * @param tx_data_len and rx_data_len is length of transmit and receive data. rx_data_len always <= tx_data_len
  * 
+ * @warning 1. tx_buffer in 'spi_expand_transaction' is a pointer to constant 'buffer'
+ * @warning - that mean this function will alloc tx and rx buffer. but tx buffer always block write
+ * @warning - suggest: create a pointer to this tx_buffer, then point 'const' tx_pointer to NULL before modify buffer
+ * @warning - after that, re-point 'const' tx_pointer to keep save data
+ * @warning 2. This function always create at least 2 32bit buffer for tx and rx.
+ * 
  * @note - after create 'spi_expand_transaction' , the feild 'base.tx_buffer' must be set data
  * @note by hand equal tx_data_len
  * @note - 'spi_expand_transaction' can reuse normally if specific field not change
@@ -196,7 +201,7 @@ _peripherals_err_t spi_master_un_install_bus_config();
 _peripherals_err_t spi_master_prepare_transaction( spi_transaction_ext_t* spi_expand_transaction,
     uint8_t command_len, uint8_t address_len, uint8_t dummy_len,
     uint16_t command_data, uint64_t address_data, 
-    size_t tx_data_len, size_t rx_data_len);
+    size_t tx_data_len_by_bit, size_t rx_data_len_by_bit);
 
 
 
