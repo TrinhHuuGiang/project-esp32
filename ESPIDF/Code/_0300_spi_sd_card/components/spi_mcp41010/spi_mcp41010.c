@@ -17,7 +17,6 @@ uint8_t spi_mcp41010_register_and_get_handle(spi_device_interface_config_t *devi
     spi_device_handle_t* device_handle)
 {
     spi_device_interface_config_t** device_conf_addr = (spi_device_interface_config_t**) device_conf;
-    spi_device_handle_t** device_handle_addr = (spi_device_handle_t**) device_handle;
 
     if(spi_master_init_device_config(device_conf, SPI_MCP41010_COMMAND_LEN,SPI_MCP41010_ADDRESS_LEN,SPI_MCP41010_DUMMY_LEN,
     SPI_MCP41010_MODE_0, SPI_MCP41010_CLK_SPEED, CS_pin, 0, 0, 0,

@@ -261,11 +261,9 @@ _peripherals_err_t spi_master_prepare_transaction( spi_transaction_ext_t* spi_ex
 
     (*spi_expand_transaction_addr)->base.user = NULL; // no using this pointer :)
 
-    // set buffer
+    // set tx buffer
     size_t remain_x = tx_data_len_by_bit % 32;
-    size_t buf_size = 0;
-    if(remain_x != 0) buf_size = (tx_data_len_by_bit + 32 - remain_x) / 8;
-    else buf_size = tx_data_len_by_bit / 8;
+    size_t buf_size = (tx_data_len_by_bit + 32 - remain_x) / 8;
 
     (*spi_expand_transaction_addr)->base.tx_buffer = heap_caps_malloc(buf_size, MALLOC_CAP_DMA);
 
@@ -283,9 +281,9 @@ _peripherals_err_t spi_master_prepare_transaction( spi_transaction_ext_t* spi_ex
         return SPI_MASTER_ALLOC_FAILED;
     }
 
+    // set rx buffer
     remain_x = rx_data_len_by_bit % 32;
-    if(remain_x != 0) buf_size = (rx_data_len_by_bit + 32 - remain_x) / 8; 
-    else buf_size = rx_data_len_by_bit / 8;
+    buf_size = (rx_data_len_by_bit + 32 - remain_x) / 8; 
 
     (*spi_expand_transaction_addr)->base.rx_buffer = heap_caps_malloc(buf_size, MALLOC_CAP_DMA);
 

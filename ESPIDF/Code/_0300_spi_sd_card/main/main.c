@@ -14,6 +14,10 @@
 static ds3231_reg_t* s_ds3231_reg_table = NULL;
 static int s_ds3231_day_status = 0; // day from 1-7
 
+static spi_device_handle_t s_spi_mcp41010_handle = NULL;
+static spi_transaction_ext_t* s_spi_mcp41010_transaction_template = NULL;
+static uint8_t s_spi_mcp41010_level = 0; // 0 - 255
+
 // main function
 
 /**
@@ -32,6 +36,11 @@ static uint8_t Init_Components();
  */
 static uint8_t display_clock();
 
+/**
+ * @brief Set potentiometer level up value and display
+ * @note setvalue ++ -> mcp41010 -> print value
+ */
+static uint8_t potentiometer_up_level_and_display();
 
 /**
  * **********************************************************
@@ -59,28 +68,52 @@ void app_main(void)
         return;
     }
 
+
+
     // toogle display variable
     int flip_ = 0, rev_ = 0;
-    
+
+    int loop_time = 50; // ms
+
+    // delay always >0
+    int clock_delay_count = 18, clock_count = clock_delay_count;  // 900ms
+    int potent_delay_count = 1, potent_count= potent_delay_count; // 50ms
+
     // loop
     while(1)
     {   
+
         // clock
         // ssd1306 page 3->7
-        if(display_clock()) return;
-
-        // flip light
-        if(++flip_ > 10)
+        if(!clock_count)
         {
-            i2c_ssd1306_reverse_light_display(SSD1306_ADDR, rev_);
-            rev_=1-rev_;
-            flip_ = 0;
+            clock_count = clock_delay_count;
+
+            if(display_clock()) return;
+
+            // flip light
+            if(++flip_ > 10)
+            {
+                if(i2c_ssd1306_reverse_light_display(SSD1306_ADDR, rev_)) return;
+                rev_=1-rev_;
+                flip_ = 0;
+            }
         }
 
+        // mcp level
+        // ssd1306 page 0->1
+        if(!potent_count)
+        {
+            potent_count= potent_delay_count;
 
+            if(potentiometer_up_level_and_display()) return;
+        }
+    
 
         // Task delay
-        vTaskDelay(pdMS_TO_TICKS(900));
+        clock_count--; potent_count--;
+
+        vTaskDelay(pdMS_TO_TICKS(loop_time));
     }
 
     // exit ok
@@ -92,17 +125,25 @@ void app_main(void)
 // init peripherals and components
 static uint8_t Init_Components()
 {
-    // varable
-    i2c_config_t* i2c_master_conf = NULL;
 
     // ======================= Peripherals
     // [I2C]
-    if(i2c_master_init_config(&i2c_master_conf)) return 1;
-    if(i2c_master_setup_hardware(i2c_master_conf)) return 1;
-    if(i2c_master_install_driver(i2c_master_conf)) return 1;
+    // varable
+    i2c_config_t* i2c_master_conf = NULL;
+
+    if(i2c_master_init_config(&i2c_master_conf) != PERIPH_OK) return 1;
+    if(i2c_master_setup_hardware(i2c_master_conf) != PERIPH_OK) return 1;
+    if(i2c_master_install_driver(i2c_master_conf) != PERIPH_OK) return 1;
     i2c_master_free_config(&i2c_master_conf);
 
-    // []
+    // [SPI]
+    // varable
+    spi_bus_config_t* spi_master_bus_conf = NULL;
+
+    if(spi_master_init_bus_config(&spi_master_bus_conf) != PERIPH_OK) return 2;
+    if(spi_master_install_bus_config(spi_master_bus_conf) != PERIPH_OK) return 2;
+    spi_master_free_bus_config(&spi_master_bus_conf);
+
 
     // ======================= Components
     // [ssd1306]
@@ -113,7 +154,13 @@ static uint8_t Init_Components()
     // [ds3231]
     if(i2c_ds3231_init_reg_table(&s_ds3231_reg_table)) return 254;
 
-    // []
+    // [mcp41010]
+    // varable
+    spi_device_interface_config_t* spi_mcp41010_conf = NULL;
+
+    if(spi_mcp41010_register_and_get_handle(&spi_mcp41010_conf,MCP41010_CS_PIN,&s_spi_mcp41010_handle)) return 200;
+    if(spi_mcp41010_create_transaction_template(&s_spi_mcp41010_transaction_template)) return 200;
+
 
     // ======================= ok
     return 0;
@@ -209,5 +256,30 @@ static uint8_t display_clock()
     }
 
     // ok
+    return 0;
+}
+
+
+// potentiometer
+static uint8_t potentiometer_up_level_and_display()
+{
+    // send level
+    if(spi_mcp41010_send_potentiometer_level(s_spi_mcp41010_handle, s_spi_mcp41010_transaction_template,s_spi_mcp41010_level)) return 1;
+
+    // display
+    if(i2c_ssd1306_page_addr_choose_page(SSD1306_ADDR, 0)) return 2;
+    if(i2c_ssd1306_page_addr_choose_start_segment(SSD1306_ADDR,0)) return 2;
+    if(i2c_ssd1306_convert_and_print_ASCII_bitmap(SSD1306_ADDR, "MCP41010 level:", I2C_SSD1306_DATA_TYPE_TO_PRINT_STRING)) return 1;
+
+    if(i2c_ssd1306_page_addr_choose_page(SSD1306_ADDR, 1)) return 2;
+    if(i2c_ssd1306_page_addr_choose_start_segment(SSD1306_ADDR,0)) return 2;
+    if(s_spi_mcp41010_level<10) 
+    {if(i2c_ssd1306_convert_and_print_ASCII_bitmap(SSD1306_ADDR, " ", I2C_SSD1306_DATA_TYPE_TO_PRINT_STRING)) return 2;}
+    if(s_spi_mcp41010_level<100) 
+    {if(i2c_ssd1306_convert_and_print_ASCII_bitmap(SSD1306_ADDR, " ", I2C_SSD1306_DATA_TYPE_TO_PRINT_STRING)) return 2;}
+    if(i2c_ssd1306_convert_and_print_ASCII_bitmap(SSD1306_ADDR, &s_spi_mcp41010_level, I2C_SSD1306_DATA_TYPE_TO_PRINT_INT32)) return 2;
+    
+    // uplevel
+    s_spi_mcp41010_level++; // up to 255 then overflow to 0
     return 0;
 }
