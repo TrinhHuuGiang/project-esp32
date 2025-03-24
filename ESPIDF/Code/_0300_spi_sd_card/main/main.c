@@ -277,7 +277,9 @@ static uint8_t potentiometer_up_level_and_display()
     {if(i2c_ssd1306_convert_and_print_ASCII_bitmap(SSD1306_ADDR, " ", I2C_SSD1306_DATA_TYPE_TO_PRINT_STRING)) return 2;}
     if(s_spi_mcp41010_level<100) 
     {if(i2c_ssd1306_convert_and_print_ASCII_bitmap(SSD1306_ADDR, " ", I2C_SSD1306_DATA_TYPE_TO_PRINT_STRING)) return 2;}
-    if(i2c_ssd1306_convert_and_print_ASCII_bitmap(SSD1306_ADDR, &s_spi_mcp41010_level, I2C_SSD1306_DATA_TYPE_TO_PRINT_INT32)) return 2;
+
+    int mcp41010_level = s_spi_mcp41010_level; // 'i2c_ssd1306_convert_and_print_ASCII_bitmap' only accept int32, string, float
+    if(i2c_ssd1306_convert_and_print_ASCII_bitmap(SSD1306_ADDR, &mcp41010_level, I2C_SSD1306_DATA_TYPE_TO_PRINT_INT32)) return 2;
     
     // uplevel
     s_spi_mcp41010_level++; // up to 255 then overflow to 0
