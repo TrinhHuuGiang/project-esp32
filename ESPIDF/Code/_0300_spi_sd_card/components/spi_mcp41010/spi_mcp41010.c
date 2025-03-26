@@ -12,19 +12,17 @@
  */
 
 // register and get handle
-uint8_t spi_mcp41010_register_and_get_handle(spi_device_interface_config_t *device_conf,
-    int CS_pin,
-    spi_device_handle_t* device_handle)
+uint8_t spi_mcp41010_register_and_get_handle(int CS_pin, spi_device_handle_t* device_handle)
 {
-    spi_device_interface_config_t** device_conf_addr = (spi_device_interface_config_t**) device_conf;
+    spi_device_interface_config_t* device_conf = NULL;
 
-    if(spi_master_init_device_config(device_conf, SPI_MCP41010_COMMAND_LEN,SPI_MCP41010_ADDRESS_LEN,SPI_MCP41010_DUMMY_LEN,
+    if(spi_master_init_device_config(&device_conf, SPI_MCP41010_COMMAND_LEN,SPI_MCP41010_ADDRESS_LEN,SPI_MCP41010_DUMMY_LEN,
     SPI_MCP41010_MODE_0, SPI_MCP41010_CLK_SPEED, CS_pin, 0, 0, 0,
     0, 0) != PERIPH_OK) return 1;
 
-    if(spi_master_register_device_config(*device_conf_addr, device_handle) != PERIPH_OK) return 2;
+    if(spi_master_register_device_config(device_conf, device_handle) != PERIPH_OK) return 2;
 
-    if(spi_master_free_device_config(device_conf) != PERIPH_OK) return 3;
+    if(spi_master_free_device_config(&device_conf) != PERIPH_OK) return 3;
 
     return 0;
 }

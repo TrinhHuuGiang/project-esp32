@@ -26,6 +26,7 @@
 #include "i2c_ds3231.h"
 
 #include "spi_mcp41010.h"
+#include "spi_sd_mount_to_fs.h"
 
 
 // debug

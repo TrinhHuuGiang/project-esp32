@@ -214,9 +214,19 @@ _peripherals_err_t spi_master_delete_transaction( spi_transaction_ext_t* spi_exp
 
 
 
+
+
+// =================================== SET CONTENT ===================================
+// =================================== BY HAND     ===================================
+// after get transaction tempalate, fill data for tx and rx buffer by hand
+// the tx buffer pointed by a pointer to const, see warning 'spi_master_prepare_transaction'
+
+
+
+
+
 // =================================== Transaction ===================================
 // =================================== =========== ===================================
-
 
 /**
  * @brief start polling transaction from master to slave

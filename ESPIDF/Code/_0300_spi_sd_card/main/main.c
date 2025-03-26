@@ -18,6 +18,14 @@ static spi_device_handle_t s_spi_mcp41010_handle = NULL;
 static spi_transaction_ext_t* s_spi_mcp41010_transaction_template = NULL;
 static uint8_t s_spi_mcp41010_level = 0; // 0 - 255
 
+
+static sdmmc_card_t* out_card = NULL;
+static FILE* s_file_ptr = NULL;
+#define FILE_NAME_STRING "/hello.txt" // 8.3 rule
+#define SIZE_PATH_ 256
+static char file_path[SIZE_PATH_] = {0};
+static int s_count_write = 10;
+
 // main function
 
 /**
@@ -41,6 +49,23 @@ static uint8_t display_clock();
  * @note setvalue ++ -> mcp41010 -> print value
  */
 static uint8_t potentiometer_up_level_and_display();
+
+/**
+ * @brief Get file path
+ * 
+ */
+static uint8_t sd_card_get_file_path();
+
+/**
+ * @brief write content and save into file
+ */
+static uint8_t sd_card_write_content_to_hello_file();
+
+/**
+ * @brief read content a file after write
+ */
+static uint8_t sd_card_read_content_from_hello_file();
+
 
 /**
  * **********************************************************
@@ -68,7 +93,20 @@ void app_main(void)
         return;
     }
 
+    sd_card_get_file_path();
 
+    ESP_LOGW("SPEED CARD", "start write");
+
+    // write, read file
+    uint8_t sd_temp_count = 10;
+
+    if(sd_card_write_content_to_hello_file()) return;
+
+    ESP_LOGI("write done", "WRITE DONE");
+
+    if(sd_card_read_content_from_hello_file()) return;
+
+    ESP_LOGI("read done", "READ DONE");
 
     // toogle display variable
     int flip_ = 0, rev_ = 0;
@@ -140,8 +178,16 @@ static uint8_t Init_Components()
     // varable
     spi_bus_config_t* spi_master_bus_conf = NULL;
 
+    ESP_LOGI("ini", "x");
+
     if(spi_master_init_bus_config(&spi_master_bus_conf) != PERIPH_OK) return 2;
+
+    ESP_LOGI("ini", "y");
+
     if(spi_master_install_bus_config(spi_master_bus_conf) != PERIPH_OK) return 2;
+
+    ESP_LOGI("ini", "t");
+    
     spi_master_free_bus_config(&spi_master_bus_conf);
 
 
@@ -156,12 +202,16 @@ static uint8_t Init_Components()
 
     // [mcp41010]
     // varable
-    spi_device_interface_config_t* spi_mcp41010_conf = NULL;
 
-    if(spi_mcp41010_register_and_get_handle(&spi_mcp41010_conf,MCP41010_CS_PIN,&s_spi_mcp41010_handle)) return 200;
+    if(spi_mcp41010_register_and_get_handle(MCP41010_CS_PIN,&s_spi_mcp41010_handle)) return 200;
     if(spi_mcp41010_create_transaction_template(&s_spi_mcp41010_transaction_template)) return 200;
 
+    // [spi sd card]
+    
+    ESP_LOGW("SPEED CARD", "%d", SPI_SD_CARD_CLOCK_SPEED);
+    if(spi_sd_card_mount_vfs_with_fatfs_on_card(&out_card)) return 199;
 
+    ESP_LOGW("SPEED CARD", "hello card ini done");
     // ======================= ok
     return 0;
 }
@@ -283,5 +333,83 @@ static uint8_t potentiometer_up_level_and_display()
     
     // uplevel
     s_spi_mcp41010_level++; // up to 255 then overflow to 0
+    return 0;
+}
+
+// get file path
+static uint8_t sd_card_get_file_path()
+{
+    memset(file_path, 0 ,SIZE_PATH_);
+    strcat(file_path, SPI_SD_CARD_ROOT_PATH_STRING);
+    strcat(file_path, FILE_NAME_STRING);
+
+    ESP_LOGW("path", "FILE PATH: %s", file_path);
+
+    return 0;
+}
+
+/**
+ * @brief write content and save into file
+ */
+static uint8_t sd_card_write_content_to_hello_file()
+{
+    s_file_ptr = fopen(file_path  , "w" );
+
+    if(s_file_ptr == NULL) return 1;
+
+    fprintf(stderr, "\nESP writing to file '%s' ...\n", file_path);
+
+    int temp_count = s_count_write;
+
+    while(temp_count)
+    {
+        fprintf(s_file_ptr, "Hello _ :) _ %d\n", temp_count);
+        temp_count --;
+    }
+
+    fprintf(s_file_ptr, "//////////");
+
+    if(fclose(s_file_ptr)) return 2;
+
+    s_file_ptr = NULL;
+    return 0;
+}
+
+/**
+ * @brief read content a file after write
+ */
+static uint8_t sd_card_read_content_from_hello_file()
+{
+    char* save_str = (char*)calloc( 256 , sizeof(char));
+
+    if(save_str == NULL) return 1;
+
+    s_file_ptr = fopen( file_path , "a+" );
+
+    if(s_file_ptr == NULL) 
+    {
+        free(save_str);
+        return 1;
+    }
+
+    fprintf(stderr, "\nESP reading first line from '%s' ...\n", file_path);
+    
+    rewind(s_file_ptr);
+
+    if(fscanf(s_file_ptr, "%[^\n]", save_str) == EOF)
+    {
+        fprintf(stderr, "END OF FILE\n");
+    }
+
+    fprintf(stderr, "Fisrt line: [ %s ]\n", save_str);
+
+    if(fclose(s_file_ptr))
+    {
+        free(save_str);
+        return 2;
+    }
+
+    free(save_str);
+    s_file_ptr = NULL;
     return 0;
 }

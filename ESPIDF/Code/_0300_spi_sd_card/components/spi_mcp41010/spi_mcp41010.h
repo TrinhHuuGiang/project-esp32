@@ -39,19 +39,20 @@
  * **********************************************************
  */
 
-//===================================== Register & unregister spi ====================
-//===================================== ========================= ====================
+//============================== Register & unregister spi      ==============================
+//============================== ============================== ==============================
 // register and get handle
-uint8_t spi_mcp41010_register_and_get_handle(spi_device_interface_config_t *device_conf,
-    int CS_pin,
-    spi_device_handle_t* device_handle);
+uint8_t spi_mcp41010_register_and_get_handle(int CS_pin, spi_device_handle_t* device_handle);
 
 // un-register
 uint8_t spi_mcp41010_un_register_and_delete_handle(spi_device_handle_t device_handle);
 
 
-//===================================== Get & delete transaction template ===================
-//===================================== ================================ ====================
+
+
+
+//============================== Get & delete transaction template ===========================
+//============================== ============================== ==============================
 // get transaction template
 uint8_t spi_mcp41010_create_transaction_template(spi_transaction_ext_t* spi_expand_transaction);
 
@@ -61,10 +62,12 @@ uint8_t spi_mcp41010_create_transaction_template(spi_transaction_ext_t* spi_expa
 uint8_t spi_mcp41010_delete_transaction_template(spi_transaction_ext_t *spi_expand_transaction);
 
 
-//===================================== master communicates with slave  ====================
-//===================================== ============================== ====================
-// start transaction
 
+
+
+//============================== master communicates with slave ==============================
+//============================== ============================== ==============================
+// start transaction
 // set level
 uint8_t spi_mcp41010_send_potentiometer_level(const spi_device_handle_t device_handle, spi_transaction_ext_t *spi_expand_transaction,
     uint8_t level);
