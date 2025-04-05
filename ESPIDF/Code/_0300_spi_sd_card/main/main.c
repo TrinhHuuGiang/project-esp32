@@ -26,6 +26,7 @@ static FILE* s_file_ptr = NULL;
 static char file_path[SIZE_PATH_] = {0};
 static int s_count_write = 10;
 
+
 // main function
 
 /**

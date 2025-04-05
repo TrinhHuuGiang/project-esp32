@@ -60,15 +60,27 @@ void app_main(void)
 
     uint8_t count = 0;
     uint8_t reverse_state = 0;
+    // while (1)
+    // {   
+    //     i2c_ssd1306_print_something(SSD1306_ADDR, epd_bitmap_allArray[count], BIT_MAP_IMAGE_128x64_USERDEFINE_SIZE);
+    //     if((++count) >= BIT_MAP_IMAGE_128x64_USERDEFINE_QUANTITY)
+    //     {
+    //         count=0;
+    //         reverse_state = 1- reverse_state;
+    //         i2c_ssd1306_reverse_light_display(SSD1306_ADDR, reverse_state);
+    //     }
+    //     vTaskDelay(pdMS_TO_TICKS(1000)); // Nghỉ 10ms (1 giây)
+    // }
+
     while (1)
     {   
-        i2c_ssd1306_print_something(SSD1306_ADDR, epd_bitmap_allArray[count], BIT_MAP_IMAGE_128x64_USERDEFINE_SIZE);
-        if((++count) >= BIT_MAP_IMAGE_128x64_USERDEFINE_QUANTITY)
+        i2c_ssd1306_print_something(SSD1306_ADDR, &ASCII_normal_8x8_bitmap[count][0], ASCII_NORMAL_8x8_BMP_SIZE);
+        if((++count) >= ASCII_NORMAL_8x8_BMP_QUANTITY)
         {
             count=0;
             reverse_state = 1- reverse_state;
             i2c_ssd1306_reverse_light_display(SSD1306_ADDR, reverse_state);
         }
-        vTaskDelay(pdMS_TO_TICKS(1000)); // Nghỉ 10ms (1 giây)
+        vTaskDelay(pdMS_TO_TICKS(200)); // Nghỉ 200ms
     }
 }
