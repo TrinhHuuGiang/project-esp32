@@ -22,6 +22,7 @@
 #include "i2c_master_handle.h" // i2c
 #include "spi_master_handle.h" // spi
 #include "gpio_setup_handle.h" // gpio
+#include "ledc_setup_handle.h" // pwm
 
 #include "i2c_ssd1306.h"
 

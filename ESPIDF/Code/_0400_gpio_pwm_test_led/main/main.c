@@ -23,8 +23,20 @@
 #define GPIO_RGB_2_LED_B (17)
 
 
-#define BUZZER_PIN_NEGATIVE (25)
+// set timer, pwm for led RGB 1 and 2
+#define LEDC_RGB_1_TIMER LEDC_TIMER_0
+#define LEDC_RGB_2_TIMER LEDC_TIMER_1
 
+#define LEDC_COMMON_FREQ_FOR_2_TIMER LEDC_SETUP_COMMON_FREQUENCY_5KHZ
+
+// set channel
+#define LEDC_RGB_1_CHANNEL_R LEDC_CHANNEL_0
+#define LEDC_RGB_1_CHANNEL_G LEDC_CHANNEL_1
+#define LEDC_RGB_1_CHANNEL_B LEDC_CHANNEL_2
+
+#define LEDC_RGB_2_CHANNEL_R LEDC_CHANNEL_3
+#define LEDC_RGB_2_CHANNEL_G LEDC_CHANNEL_4
+#define LEDC_RGB_2_CHANNEL_B LEDC_CHANNEL_5
 /**
  * **********************************************************
  * Variables
@@ -41,15 +53,15 @@ static uint8_t led2_state = 0, led2_old_state = 0;
 
 // GPIO interrupt function
 // toggle led
-static void IRAM_ATTR toggle_RGB_led_red_1(void* arg);
-static void IRAM_ATTR toggle_RGB_led_green_1(void* arg);
-static void IRAM_ATTR toggle_RGB_led_blue_1(void* arg);
+static void IRAM_ATTR set_mode_increase_duty_RGB_led_red_1(void* arg);
+static void IRAM_ATTR set_mode_increase_duty_RGB_led_green_1(void* arg);
+static void IRAM_ATTR set_mode_increase_duty_RGB_led_blue_1(void* arg);
 
-static void IRAM_ATTR toggle_RGB_led_red_2(void* arg);
-static void IRAM_ATTR toggle_RGB_led_green_2(void* arg);
-static void IRAM_ATTR toggle_RGB_led_blue_2(void* arg);
+static void IRAM_ATTR set_mode_increase_duty_RGB_led_red_2(void* arg);
+static void IRAM_ATTR set_mode_increase_duty_RGB_led_green_2(void* arg);
+static void IRAM_ATTR set_mode_increase_duty_RGB_led_blue_2(void* arg);
 
-static void toggle_led_handler(void* arg);
+static void set_mode_increase_duty_led_handler(void* arg);
 
 /**
  * **********************************************************
@@ -64,28 +76,13 @@ void app_main(void)
 
     if(gpio_setup_reset_pin_to_origin(GPIO_RGB_2_LED_B)) return;
 
-    // gpio in out
+    // gpio in
     if(gpio_setup_io_direction(GPIO_RGB_1_LED_R_CONTROL,GPIO_MODE_INPUT)) return;
     if(gpio_setup_io_direction(GPIO_RGB_1_LED_G_CONTROL,GPIO_MODE_INPUT)) return;
     if(gpio_setup_io_direction(GPIO_RGB_1_LED_B_CONTROL,GPIO_MODE_INPUT)) return;
     if(gpio_setup_io_direction(GPIO_RGB_2_LED_R_CONTROL,GPIO_MODE_INPUT)) return;
     if(gpio_setup_io_direction(GPIO_RGB_2_LED_G_CONTROL,GPIO_MODE_INPUT)) return;
     if(gpio_setup_io_direction(GPIO_RGB_2_LED_B_CONTROL,GPIO_MODE_INPUT)) return;
-
-    if(gpio_setup_io_direction(GPIO_RGB_1_LED_R,GPIO_MODE_OUTPUT)) return;
-    if(gpio_setup_io_direction(GPIO_RGB_1_LED_G,GPIO_MODE_OUTPUT)) return;
-
-    if(gpio_setup_reset_pin_to_origin(GPIO_RGB_1_LED_B)) return;
-    if(gpio_setup_io_direction(GPIO_RGB_1_LED_B,GPIO_MODE_OUTPUT)) return;
-    
-    if(gpio_setup_io_direction(GPIO_RGB_2_LED_R,GPIO_MODE_OUTPUT)) return;
-    if(gpio_setup_io_direction(GPIO_RGB_2_LED_G,GPIO_MODE_OUTPUT)) return;
-    if(gpio_setup_io_direction(GPIO_RGB_2_LED_B,GPIO_MODE_OUTPUT)) return;
-    
-    
-    
-
-    if(gpio_setup_io_direction(BUZZER_PIN_NEGATIVE,GPIO_MODE_OUTPUT)) return;
 
     // set pull
     if(gpio_setup_pull_res(GPIO_RGB_1_LED_R_CONTROL,GPIO_PULLUP_ONLY)) return;
@@ -94,16 +91,31 @@ void app_main(void)
     if(gpio_setup_pull_res(GPIO_RGB_2_LED_R_CONTROL,GPIO_PULLUP_ONLY)) return;
     if(gpio_setup_pull_res(GPIO_RGB_2_LED_G_CONTROL,GPIO_PULLUP_ONLY)) return;
     if(gpio_setup_pull_res(GPIO_RGB_2_LED_B_CONTROL,GPIO_PULLUP_ONLY)) return;
+    
 
+    // ledc pwm setup
+
+    if(ledc_setup_timer_config(LEDC_RGB_1_TIMER, LEDC_COMMON_FREQ_FOR_2_TIMER)) return;
+    if(ledc_setup_timer_config(LEDC_RGB_2_TIMER, LEDC_COMMON_FREQ_FOR_2_TIMER)) return;
+
+    if(ledc_setup_channel_config_and_start(GPIO_RGB_1_LED_R,LEDC_RGB_1_CHANNEL_R, LEDC_RGB_1_TIMER, 0)) return;
+    if(ledc_setup_channel_config_and_start(GPIO_RGB_1_LED_G,LEDC_RGB_1_CHANNEL_G, LEDC_RGB_1_TIMER, 0)) return;
+    if(ledc_setup_channel_config_and_start(GPIO_RGB_1_LED_B,LEDC_RGB_1_CHANNEL_B, LEDC_RGB_1_TIMER, 0)) return;
+    if(ledc_setup_channel_config_and_start(GPIO_RGB_2_LED_R,LEDC_RGB_2_CHANNEL_R, LEDC_RGB_2_TIMER, 0)) return;
+    if(ledc_setup_channel_config_and_start(GPIO_RGB_2_LED_G,LEDC_RGB_2_CHANNEL_G, LEDC_RGB_2_TIMER, 0)) return;
+    if(ledc_setup_channel_config_and_start(GPIO_RGB_2_LED_B,LEDC_RGB_2_CHANNEL_B, LEDC_RGB_2_TIMER, 0)) return;
+
+    // install fade function
+    if(ledc_setup_install_hardware_auto_pwm_duty_driver()) return;
 
     // add isr
-    if(gpio_setup_add_handler_for_pin(GPIO_RGB_1_LED_R_CONTROL, toggle_RGB_led_red_1, NULL)) return;
-    if(gpio_setup_add_handler_for_pin(GPIO_RGB_1_LED_G_CONTROL, toggle_RGB_led_green_1, NULL)) return;
-    if(gpio_setup_add_handler_for_pin(GPIO_RGB_1_LED_B_CONTROL, toggle_RGB_led_blue_1, NULL)) return;
+    if(gpio_setup_add_handler_for_pin(GPIO_RGB_1_LED_R_CONTROL, set_mode_increase_duty_RGB_led_red_1, NULL)) return;
+    if(gpio_setup_add_handler_for_pin(GPIO_RGB_1_LED_G_CONTROL, set_mode_increase_duty_RGB_led_green_1, NULL)) return;
+    if(gpio_setup_add_handler_for_pin(GPIO_RGB_1_LED_B_CONTROL, set_mode_increase_duty_RGB_led_blue_1, NULL)) return;
 
-    if(gpio_setup_add_handler_for_pin(GPIO_RGB_2_LED_R_CONTROL, toggle_RGB_led_red_2, NULL)) return;
-    if(gpio_setup_add_handler_for_pin(GPIO_RGB_2_LED_G_CONTROL, toggle_RGB_led_green_2, NULL)) return;
-    if(gpio_setup_add_handler_for_pin(GPIO_RGB_2_LED_B_CONTROL, toggle_RGB_led_blue_2, NULL)) return;
+    if(gpio_setup_add_handler_for_pin(GPIO_RGB_2_LED_R_CONTROL, set_mode_increase_duty_RGB_led_red_2, NULL)) return;
+    if(gpio_setup_add_handler_for_pin(GPIO_RGB_2_LED_G_CONTROL, set_mode_increase_duty_RGB_led_green_2, NULL)) return;
+    if(gpio_setup_add_handler_for_pin(GPIO_RGB_2_LED_B_CONTROL, set_mode_increase_duty_RGB_led_blue_2, NULL)) return;
 
     // isr active type rising edge
     if(gpio_setup_isr_active_type_for_pin(GPIO_RGB_1_LED_R_CONTROL, GPIO_INTR_POSEDGE)) return;
@@ -127,15 +139,13 @@ void app_main(void)
     // create led handle task
     int ret = 0;
 
-    xTaskCreate(toggle_led_handler, "Toggle RGB Task", 2048, &ret, 5, NULL);
+    xTaskCreate(set_mode_increase_duty_led_handler, "Handle pwm duty RGB Task", 2048, &ret, 5, NULL);
 
     while(1)
     {
-        if(gpio_setup_output_logic_level(BUZZER_PIN_NEGATIVE,0)) return;
-        vTaskDelay(pdMS_TO_TICKS(100));
-
-        if(gpio_setup_output_logic_level(BUZZER_PIN_NEGATIVE,1)) return;
+        ESP_LOGI("main loop", "--- wait 1000ms");
         vTaskDelay(pdMS_TO_TICKS(1000));
+        ESP_LOGI("main loop", "___ done");
     }
 
     return;
@@ -143,57 +153,119 @@ void app_main(void)
 
 
 // toggle led
-static void IRAM_ATTR toggle_RGB_led_red_1(void* arg)
+static void IRAM_ATTR set_mode_increase_duty_RGB_led_red_1(void* arg)
 {
     led1_state ^= (1);
 }
 
-static void IRAM_ATTR toggle_RGB_led_green_1(void* arg)
+static void IRAM_ATTR set_mode_increase_duty_RGB_led_green_1(void* arg)
 {
     led1_state ^= (1<<1);
 }
 
-static void IRAM_ATTR toggle_RGB_led_blue_1(void* arg)
+static void IRAM_ATTR set_mode_increase_duty_RGB_led_blue_1(void* arg)
 {
     led1_state ^= (1<<2);
 }
 
-static void IRAM_ATTR toggle_RGB_led_red_2(void* arg)
+static void IRAM_ATTR set_mode_increase_duty_RGB_led_red_2(void* arg)
 {
     led2_state ^= (1);
 }
 
-static void IRAM_ATTR toggle_RGB_led_green_2(void* arg)
+static void IRAM_ATTR set_mode_increase_duty_RGB_led_green_2(void* arg)
 {
     led2_state ^= (1<<1);
 }
 
-static void IRAM_ATTR toggle_RGB_led_blue_2(void* arg)
+static void IRAM_ATTR set_mode_increase_duty_RGB_led_blue_2(void* arg)
 {
     led2_state ^= (1<<2);
 }
 
-static void toggle_led_handler(void* arg)
+static void set_mode_increase_duty_led_handler(void* arg)
 {
     int* ret = (int*)arg;
+
+    uint32_t target_duty = (1<<LEDC_SETUP_FIX_COMMON_RESOLUTION)-1;
+
+    int max_time_fade = 1000; // ms
 
     while(! (*ret))
     {
         if(led1_state != led1_old_state)
         {
-            if(gpio_setup_output_logic_level(GPIO_RGB_1_LED_R , (uint8_t)(led1_state & (1)))) (*ret) = 1;
-            if(gpio_setup_output_logic_level(GPIO_RGB_1_LED_G , (uint8_t)((led1_state & (1<<1)) >> 1)))  (*ret) = 1;
-            if(gpio_setup_output_logic_level(GPIO_RGB_1_LED_B , (uint8_t)((led1_state & (1<<2)) >> 2)))  (*ret) = 1;
+            // led1 R
+            if(led1_state & (1))
+            {
+                if(ledc_setup_auto_fade_pwm_duty_by_hardware(LEDC_RGB_1_CHANNEL_R,target_duty,max_time_fade)) (*ret) = 1;
+            }
+            else
+            {
+                // if only stop ledc but old fade value still exist
+                // so before stop, set duty = 0
+                if(ledc_setup_change_pwm_duty(LEDC_RGB_1_CHANNEL_R,0)) (*ret) = 1;
+                if(ledc_setup_stop_channel(LEDC_RGB_1_CHANNEL_R , 0)) (*ret) = 1; 
+            }
+            // led1 G
+            if(led1_state & (1<<1))
+            {
+                if(ledc_setup_auto_fade_pwm_duty_by_hardware(LEDC_RGB_1_CHANNEL_G,target_duty,max_time_fade)) (*ret) = 1;
+            }
+            else
+            {
+                if(ledc_setup_change_pwm_duty(LEDC_RGB_1_CHANNEL_G,0)) (*ret) = 1;
+                if(ledc_setup_stop_channel(LEDC_RGB_1_CHANNEL_G , 0)) (*ret) = 1; 
+            }
+            // led1 B
+            if(led1_state & (1<<2))
+            {
+                if(ledc_setup_auto_fade_pwm_duty_by_hardware(LEDC_RGB_1_CHANNEL_B,target_duty,max_time_fade)) (*ret) = 1;
+            }
+            else
+            {
+                if(ledc_setup_change_pwm_duty(LEDC_RGB_1_CHANNEL_B,0)) (*ret) = 1;
+                if(ledc_setup_stop_channel(LEDC_RGB_1_CHANNEL_B , 0)) (*ret) = 1; 
+            }
 
+            // save old state
             led1_old_state = led1_state;
         }
 
         if(led2_state != led2_old_state)
         {
-            if(gpio_setup_output_logic_level(GPIO_RGB_2_LED_R , (uint8_t)(led2_state & (1))))  (*ret) = 1;
-            if(gpio_setup_output_logic_level(GPIO_RGB_2_LED_G , (uint8_t)((led2_state & (1<<1)) >> 1)))  (*ret) = 1;
-            if(gpio_setup_output_logic_level(GPIO_RGB_2_LED_B , (uint8_t)((led2_state & (1<<2)) >> 2)))  (*ret) = 1;
+            // led2 R
+            if(led2_state & (1))
+            {
+                if(ledc_setup_auto_fade_pwm_duty_by_hardware(LEDC_RGB_2_CHANNEL_R,target_duty,max_time_fade)) (*ret) = 1;
+            }
+            else
+            {
+                if(ledc_setup_change_pwm_duty(LEDC_RGB_2_CHANNEL_R,0)) (*ret) = 1;
+                if(ledc_setup_stop_channel(LEDC_RGB_2_CHANNEL_R , 0)) (*ret) = 1; 
+            }
+            // led2 G
+            if(led2_state & (1<<1))
+            {
+                if(ledc_setup_auto_fade_pwm_duty_by_hardware(LEDC_RGB_2_CHANNEL_G,target_duty,max_time_fade)) (*ret) = 1;
+            }
+            else
+            {
+                if(ledc_setup_change_pwm_duty(LEDC_RGB_2_CHANNEL_G,0)) (*ret) = 1;
+                if(ledc_setup_stop_channel(LEDC_RGB_2_CHANNEL_G , 0)) (*ret) = 1; 
+            }
+            // led2 B
+            if(led2_state & (1<<2))
+            {
+                if(ledc_setup_auto_fade_pwm_duty_by_hardware(LEDC_RGB_2_CHANNEL_B,target_duty,max_time_fade)) (*ret) = 1;
+            }
+            else
+            {
+                if(ledc_setup_change_pwm_duty(LEDC_RGB_2_CHANNEL_B,0)) (*ret) = 1;
+                if(ledc_setup_stop_channel(LEDC_RGB_2_CHANNEL_B , 0)) (*ret) = 1; 
+            }
 
+            // save old state
             led2_old_state = led2_state;
         }
 
