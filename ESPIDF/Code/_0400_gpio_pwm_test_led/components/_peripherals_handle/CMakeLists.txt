@@ -5,5 +5,6 @@ idf_component_register(
     "spi_master_handle.c"
     "gpio_setup_handle.c"
     "ledc_setup_handle.c"
+    "mcpwm_setup_handle.c"
     INCLUDE_DIRS
     ".")

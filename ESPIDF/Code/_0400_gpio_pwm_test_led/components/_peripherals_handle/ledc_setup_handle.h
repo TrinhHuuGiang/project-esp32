@@ -3,7 +3,6 @@
 // here we only use 4 timer and 8 channel high speed
 // for convenient, should set 1 - 1 (timer0 - channel0, .. , timer3 - channel3)
 
-
 #ifndef _LEDC_SETUP_HANDLE_H_
 #define _LEDC_SETUP_HANDLE_H_
 
@@ -28,7 +27,7 @@
 #define LEDC_SETUP_COMMON_FREQUENCY_5KHZ   (5000)
 #define LEDC_SETUP_COMMON_FREQUENCY_10KHZ  (10000)
 
-#define LEDC_SETUP_FIX_COMMON_RESOLUTION  (7)           // 2^7 = 128 duty level
+#define LEDC_SETUP_FIX_COMMON_RESOLUTION  (8)           // 2^8 = 256 duty level
 
 #define LEDC_SETUP_LEDC_SPEED_MODE  LEDC_HIGH_SPEED_MODE
 
@@ -55,12 +54,16 @@ _peripherals_err_t ledc_setup_channel_config_and_start(int gpio_num, ledc_channe
 _peripherals_err_t ledc_setup_stop_channel(ledc_channel_t channel, uint32_t idle_level);
 
 
+
+
 // =================================== Change duty by soft ware    ===================================
 // =================================== =========================== ===================================
-
-
 // change PWM Duty cycle software
 _peripherals_err_t ledc_setup_change_pwm_duty(ledc_channel_t channel, uint32_t duty);
+
+
+
+
 
 // =================================== Change duty by hard ware    ===================================
 // =================================== Fade effect                 ===================================
