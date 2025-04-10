@@ -15,7 +15,7 @@
 // gpio_reset_pin
 _peripherals_err_t gpio_setup_reset_pin_to_origin(gpio_num_t GPIO_pin_num)
 {
-    esp_err_t ret = gpio_reset_pin(GPIO_pin_num); // always return ok
+    gpio_reset_pin(GPIO_pin_num); // always return ok
 
     return PERIPH_OK;
 }
@@ -69,17 +69,9 @@ _peripherals_err_t gpio_setup_output_logic_level(gpio_num_t gpio_num, uint32_t l
 }
 
 // gpio_get_level
-_peripherals_err_t gpio_setup_get_logic_level(gpio_num_t gpio_num)
+_peripherals_err_t gpio_setup_get_logic_level(gpio_num_t gpio_num, uint8_t* logic_level)
 {
-    esp_err_t ret = gpio_get_level(gpio_num);
-
-    if(ret!=ESP_OK)
-    {
-        #if CONFIG_DEBUG_ENABLE !=0
-        send_peripheral_err_location(GPIO_SETUP_GET_SIGNAL_FAILED, __FILE__, __LINE__, esp_err_to_name(ret));
-        #endif
-        return GPIO_SETUP_GET_SIGNAL_FAILED;
-    }
+    *logic_level = gpio_get_level(gpio_num);
 
     return PERIPH_OK;  
 }

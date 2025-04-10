@@ -14,13 +14,13 @@
 
  
 // timer config
-_peripherals_err_t ledc_setup_timer_config(ledc_timer_t timer_order_num, uint32_t ledc_freq_hz)
+_peripherals_err_t ledc_setup_timer_config(ledc_timer_t timer_order_num, uint32_t ledc_freq_hz, ledc_timer_bit_t ledc_resolution)
 {
     // config 1 of 4 high speed timer
     ledc_timer_config_t timer_conf = 
     {
         .speed_mode = LEDC_SETUP_LEDC_SPEED_MODE,
-        .duty_resolution = LEDC_SETUP_FIX_COMMON_RESOLUTION,
+        .duty_resolution = ledc_resolution,
         .timer_num = timer_order_num,
         .freq_hz = ledc_freq_hz, //Hz
         .clk_cfg = LEDC_AUTO_CLK
@@ -40,9 +40,10 @@ _peripherals_err_t ledc_setup_timer_config(ledc_timer_t timer_order_num, uint32_
 }
 
 // channel config and start
-_peripherals_err_t ledc_setup_channel_config_and_start(int gpio_num, ledc_channel_t channel_order_num, ledc_timer_t timer_order_num, uint32_t init_duty)
+_peripherals_err_t ledc_setup_channel_config_and_start(int gpio_num, ledc_channel_t channel_order_num, 
+    ledc_timer_t timer_order_num, ledc_timer_bit_t ledc_resolution ,uint32_t init_duty)
 {
-    if(init_duty >= (1<<LEDC_SETUP_FIX_COMMON_RESOLUTION))
+    if(init_duty >= (1<<ledc_resolution))
     {
         #if CONFIG_DEBUG_ENABLE !=0
         send_peripheral_err_location(LEDC_SETUP_CHANNEL_DUTY_OVERFLOW, __FILE__, __LINE__, "Duty over flow");
@@ -94,9 +95,9 @@ _peripherals_err_t ledc_setup_stop_channel(ledc_channel_t channel, uint32_t idle
 }
 
 // change PWM Duty cycle software
-_peripherals_err_t ledc_setup_change_pwm_duty(ledc_channel_t channel, uint32_t duty)
+_peripherals_err_t ledc_setup_change_pwm_duty(ledc_channel_t channel, uint32_t duty, ledc_timer_bit_t ledc_resolution)
 {
-    if(duty >= (1<<LEDC_SETUP_FIX_COMMON_RESOLUTION))
+    if(duty >= (1<<ledc_resolution))
     {
         #if CONFIG_DEBUG_ENABLE !=0
         send_peripheral_err_location(LEDC_SETUP_CHANNEL_DUTY_OVERFLOW, __FILE__, __LINE__, "Duty over flow");

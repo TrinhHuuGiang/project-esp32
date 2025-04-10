@@ -1,0 +1,21 @@
+menu "DEV_____IO_device_config_74HC165_input_logic"
+
+config GPIO_74HC165_LATCH_PIN
+    int "generate pwm signal for latch"
+    default 32
+    help
+        GPIO output pwm, using control latch 74HC165
+
+config GPIO_74HC165_CLOCK_PIN
+    int "generate pwm signal for clock"
+    default 33
+    help
+        GPIO output pwm, using like clock 74HC165
+
+config GPIO_74HC165_DATA_SHIFT_IN
+    int "input gpio get shift in data"
+    default 35
+    help
+        GPIO input, get signal shift in by series 74hc165
+
+endmenu

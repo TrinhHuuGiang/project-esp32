@@ -1,0 +1,6 @@
+idf_component_register(
+    SRCS
+    "gpio_74hc165.c"
+    INCLUDE_DIRS
+    "."
+    "${PROJECT_DIR}/components/_peripherals_handle/")

@@ -335,7 +335,7 @@ uint8_t i2c_ssd1306_page_addr_choose_start_segment(uint8_t addr, uint8_t segment
 // --------------------Write data functions----------------------
 
 // print some thing
-uint8_t i2c_ssd1306_print_something(uint8_t addr, const uint8_t* content, u_int32_t size_content)
+uint8_t i2c_ssd1306_print_something(uint8_t addr, const uint8_t* content, uint32_t size_content)
 {
     i2c_master_list_t set_content;
 

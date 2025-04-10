@@ -25,7 +25,6 @@
 #include "ledc_setup_handle.h" // pwm
 
 #include "i2c_ssd1306.h"
-#include "gpio_74hc165.h"
 
 
 // debug

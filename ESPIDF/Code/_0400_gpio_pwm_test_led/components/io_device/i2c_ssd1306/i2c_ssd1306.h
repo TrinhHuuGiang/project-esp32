@@ -59,7 +59,7 @@
 
 // Data type
 #define I2C_SSD1306_DATA_TYPE_TO_PRINT_STRING   (1)
-#define I2C_SSD1306_DATA_TYPE_TO_PRINT_INT32   (2)
+#define I2C_SSD1306_DATA_TYPE_TO_PRINT_INT32    (2)
 #define I2C_SSD1306_DATA_TYPE_TO_PRINT_FLOAT    (3)
 
 // convenience string
@@ -185,7 +185,7 @@ uint8_t i2c_ssd1306_hv_addr_choose_group_segment(uint8_t addr, uint8_t segment_s
  * 
  * @return 0 ok, !0 fail
  */
-uint8_t i2c_ssd1306_print_something(uint8_t addr, const uint8_t* content, u_int32_t size_content);
+uint8_t i2c_ssd1306_print_something(uint8_t addr, const uint8_t* content, uint32_t size_content);
 
 /**
  * @brief Send empty segment to clean CGRAM

@@ -56,8 +56,8 @@
                                            // when duty ~ 50 (A high 50% first, B high 50% after that) motor like is stopping
                                            // when duty > 50 motor rotate 1 direct
                                            // when duty < 50 motor rotate reverse
-#define MCPWM_SETUP_DEADTIME_RISING_DELAY  (5)  //     1 == 100ns
-#define MCPWM_SETUP_DEADTIME_FALLING_DELAY (5)  // ->  5 == 500ns is safe  . 200ns is common . higher maybe no stable
+#define MCPWM_SETUP_DEADTIME_RISING_DELAY  (5UL)  //     1 == 100ns
+#define MCPWM_SETUP_DEADTIME_FALLING_DELAY (5UL)  // ->  5 == 500ns is safe  . 200ns is common . higher maybe no stable
                                                       // 1/500ns = 2MHz -> transistor must switch faster 2MHz and fine with low duty frequency
                                                       // example with 20khz, 500ns ~ 1% duty, 5khz ~ 0.25%
 
@@ -71,7 +71,9 @@
 //mcpwm_config_t 
 //  mcpwm_group_set_resolution()
 // mcpwm_timer_set_resolution()
-_peripherals_err_t mcpwm_setup_set_timer_frequency_resolution(mcpwm_unit_t* mcpwm_unit);
+_peripherals_err_t mcpwm_setup_set_timer_frequency_resolution(mcpwm_unit_t mcpwm_num, mcpwm_timer_t timer_num,
+    uint32_t frequency, float cmpr_a_duty_percent, float cmpr_b_duty_percent,
+    unsigned long resolution);
 
 
 // Configure
@@ -79,29 +81,30 @@ _peripherals_err_t mcpwm_setup_set_timer_frequency_resolution(mcpwm_unit_t* mcpw
 //  mcpwm_io_signals_t
 //  mcpwm_set_pin()
 //  mcpwm_pin_config_t
-_peripherals_err_t mcpwm_setup_init_GPIO_function(mcpwm_unit_t* mcpwm_unit);
+_peripherals_err_t mcpwm_setup_init_GPIO_funtion(mcpwm_unit_t mcpwm_num, mcpwm_io_signals_t io_signal, int gpio_num);
 
 
 
 // operate (connect timer x to operator A or B of it and send signal)
 
 //  mcpwm_start() mcpwm_stop().
-_peripherals_err_t mcpwm_setup_start_output_signal(mcpwm_unit_t* mcpwm_unit);
+_peripherals_err_t mcpwm_setup_start_output_signal(mcpwm_unit_t mcpwm_num, mcpwm_timer_t timer_num);
 
-_peripherals_err_t mcpwm_setup_stop_output_signal(mcpwm_unit_t* mcpwm_unit);
+_peripherals_err_t mcpwm_setup_stop_output_signal(mcpwm_unit_t mcpwm_num, mcpwm_timer_t timer_num);
 
 //  mcpwm_set_duty()
 // mcpwm_set_duty_in_us()
 //  mcpwm_get_duty()
 
-_peripherals_err_t mcpwm_setup_set_duty(mcpwm_unit_t* mcpwm_unit);
+_peripherals_err_t mcpwm_setup_set_duty(mcpwm_unit_t mcpwm_num, mcpwm_timer_t timer_num, mcpwm_generator_t gen, float duty);
 
 // adjust
 //  mcpwm_deadtime_type_t
 // mcpwm_deadtime_enable()
 // mcpwm_deadtime_disable().
-_peripherals_err_t mcpwm_setup_deadtime_enable(mcpwm_unit_t* mcpwm_unit);
 
-_peripherals_err_t mcpwm_setup_deadtime_disable(mcpwm_unit_t* mcpwm_unit);
+// _peripherals_err_t mcpwm_setup_deadtime_enable(mcpwm_unit_t mcpwm_num, mcpwm_timer_t timer_num);
+
+// _peripherals_err_t mcpwm_setup_deadtime_disable(mcpwm_unit_t mcpwm_num, mcpwm_timer_t timer_num);
 
 #endif

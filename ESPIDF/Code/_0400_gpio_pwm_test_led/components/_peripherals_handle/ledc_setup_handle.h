@@ -27,7 +27,7 @@
 #define LEDC_SETUP_COMMON_FREQUENCY_5KHZ   (5000)
 #define LEDC_SETUP_COMMON_FREQUENCY_10KHZ  (10000)
 
-#define LEDC_SETUP_FIX_COMMON_RESOLUTION  (8)           // 2^8 = 256 duty level
+#define LEDC_SETUP_FIX_COMMON_RESOLUTION  (8)           // 2^8 = 256 duty level <- recommend for options frequency above
 
 #define LEDC_SETUP_LEDC_SPEED_MODE  LEDC_HIGH_SPEED_MODE
 
@@ -39,7 +39,7 @@
 // =================================== =========================== ===================================
 
 // timer config
-_peripherals_err_t ledc_setup_timer_config(ledc_timer_t timer_order_num, uint32_t ledc_freq_hz);
+_peripherals_err_t ledc_setup_timer_config(ledc_timer_t timer_order_num, uint32_t ledc_freq_hz, ledc_timer_bit_t ledc_resolution);
 
 
 
@@ -48,7 +48,7 @@ _peripherals_err_t ledc_setup_timer_config(ledc_timer_t timer_order_num, uint32_
 // =================================== =========================== ===================================
 // channel config and start
 _peripherals_err_t ledc_setup_channel_config_and_start(int gpio_num, ledc_channel_t channel_order_num, 
-    ledc_timer_t timer_order_num, uint32_t init_duty);
+    ledc_timer_t timer_order_num, ledc_timer_bit_t ledc_resolution ,uint32_t init_duty);
 
 // stop channel ledc
 _peripherals_err_t ledc_setup_stop_channel(ledc_channel_t channel, uint32_t idle_level);
@@ -59,7 +59,7 @@ _peripherals_err_t ledc_setup_stop_channel(ledc_channel_t channel, uint32_t idle
 // =================================== Change duty by soft ware    ===================================
 // =================================== =========================== ===================================
 // change PWM Duty cycle software
-_peripherals_err_t ledc_setup_change_pwm_duty(ledc_channel_t channel, uint32_t duty);
+_peripherals_err_t ledc_setup_change_pwm_duty(ledc_channel_t channel, uint32_t duty, ledc_timer_bit_t ledc_resolution);
 
 
 

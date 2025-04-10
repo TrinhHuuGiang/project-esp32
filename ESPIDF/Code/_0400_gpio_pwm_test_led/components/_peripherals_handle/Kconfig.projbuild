@@ -1,4 +1,4 @@
-menu "DEV_____PERIPHERALS"
+menu "DEV_____Peripherals_internal"
 
 config I2C_MASTER_PORT_NUMBER
     int "I2C port for master mode"
@@ -75,8 +75,6 @@ config SPI_MASTER_LIMIT_FREQ_GPIO_MATRIX
         set maximum to warn admin limit device frequency.
         When input delay time > 100ns, maximum frequency should < 8Mhz.
         When input delay time = 0ns, maximum frequency is 26,67Mhz
-
-
 
 
 

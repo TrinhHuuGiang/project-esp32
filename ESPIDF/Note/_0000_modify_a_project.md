@@ -38,11 +38,11 @@
         idf_component_register(SRCS "main.c" // thêm danh sách các file .c
                     INCLUDE_DIRS ".") // thêm danh sách các file header
         ```
-        - Dĩ nhiên nếu 1 file `.h` mà thiết đi file định nghĩa `.c` cho nó thì không thể chạy được. khi ấy ta cần thêm lệnh để tìm file `CMakeLists.txt` của chúng:
-            - CHạy lệnh:
-            ```c
-            add_subdirectory(components/my_lib)  // Bắt buộc chạy `CMakeLists.txt` nằm trong `my_lib` chẳng hạn
-            ```
+    - Khi cần tạo thêm các thư mục component có tên khác đi hoặc tạo các thư mục riêng để quản lý các component:
+        - trong muc CMakeLists.txt ngoài cùng thêm lệnh:
+        ```c
+        set(EXTRA_COMPONENT_DIRS "đường đẫn đến thư mục chứa các component")
+        ```
 
 - File `Kconfig` và `sdkconfig.h` và `sdfconfig`
     - Đơn giản thì nơi nào có `CMakeLists.txt` đề có thể cần 1 file `Kconfig`

@@ -129,33 +129,34 @@ _peripherals_err_t mcpwm_setup_set_duty(mcpwm_unit_t mcpwm_num, mcpwm_timer_t ti
 //  mcpwm_deadtime_type_t
 // mcpwm_deadtime_enable()
 // mcpwm_deadtime_disable().
-_peripherals_err_t mcpwm_setup_deadtime_enable(mcpwm_unit_t mcpwm_num, mcpwm_timer_t timer_num)
-{
-    esp_err_t ret =  mcpwm_deadtime_enable(mcpwm_num, timer_num, MCPWM_SETUP_DEADTIME_MODE_TYPE, 
-        MCPWM_SETUP_DEADTIME_RISING_DELAY, MCPWM_SETUP_DEADTIME_FALLING_DELAY);
 
-    if(ret!=ESP_OK)
-    {
-        #if CONFIG_DEBUG_ENABLE !=0
-        send_peripheral_err_location(MCPWM_SETUP_INIT_SET_DUTY_FAILED, __FILE__, __LINE__, esp_err_to_name(ret));
-        #endif
-        return MCPWM_SETUP_INIT_SET_DUTY_FAILED;
-    }
+// _peripherals_err_t mcpwm_setup_deadtime_enable(mcpwm_unit_t mcpwm_num, mcpwm_timer_t timer_num)
+// {
+//     esp_err_t ret =  mcpwm_deadtime_enable(mcpwm_num, timer_num, MCPWM_SETUP_DEADTIME_MODE_TYPE,
+//         MCPWM_SETUP_DEADTIME_RISING_DELAY, MCPWM_SETUP_DEADTIME_FALLING_DELAY);
 
-    return PERIPH_OK;
-}
+//     if(ret!=ESP_OK)
+//     {
+//         #if CONFIG_DEBUG_ENABLE !=0
+//         send_peripheral_err_location(MCPWM_SETUP_INIT_SET_DEADTIME_EN_FAILED, __FILE__, __LINE__, esp_err_to_name(ret));
+//         #endif
+//         return MCPWM_SETUP_INIT_SET_DEADTIME_EN_FAILED;
+//     }
 
-_peripherals_err_t mcpwm_setup_deadtime_disable(mcpwm_unit_t mcpwm_num, mcpwm_timer_t timer_num)
-{
-    esp_err_t ret =  mcpwm_deadtime_disable(mcpwm_num, timer_num);
+//     return PERIPH_OK;
+// }
 
-    if(ret!=ESP_OK)
-    {
-        #if CONFIG_DEBUG_ENABLE !=0
-        send_peripheral_err_location(MCPWM_SETUP_INIT_SET_DUTY_FAILED, __FILE__, __LINE__, esp_err_to_name(ret));
-        #endif
-        return MCPWM_SETUP_INIT_SET_DUTY_FAILED;
-    }
+// _peripherals_err_t mcpwm_setup_deadtime_disable(mcpwm_unit_t mcpwm_num, mcpwm_timer_t timer_num)
+// {
+//     esp_err_t ret =  mcpwm_deadtime_disable(mcpwm_num, timer_num);
 
-    return PERIPH_OK;
-}
+//     if(ret!=ESP_OK)
+//     {
+//         #if CONFIG_DEBUG_ENABLE !=0
+//         send_peripheral_err_location(MCPWM_SETUP_INIT_SET_DEADTIME_DIS_FAILED, __FILE__, __LINE__, esp_err_to_name(ret));
+//         #endif
+//         return MCPWM_SETUP_INIT_SET_DEADTIME_DIS_FAILED;
+//     }
+
+//     return PERIPH_OK;
+// }

@@ -64,7 +64,7 @@ _peripherals_err_t gpio_setup_pull_res(gpio_num_t gpio_num, gpio_pull_mode_t pul
 _peripherals_err_t gpio_setup_output_logic_level(gpio_num_t gpio_num, uint32_t level);
 
 // gpio_get_level
-_peripherals_err_t gpio_setup_get_logic_level(gpio_num_t gpio_num);
+_peripherals_err_t gpio_setup_get_logic_level(gpio_num_t gpio_num,  uint8_t* logic_level);
 
 
 

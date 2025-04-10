@@ -4,4 +4,4 @@ idf_component_register(
     INCLUDE_DIRS
     "."
     "${PROJECT_DIR}/components/_peripherals_handle/"
-    "${PROJECT_DIR}/components/spi_sd_card/")
+    "${PROJECT_DIR}/components/io_device/spi_sd_card/")

@@ -10,6 +10,7 @@
         - mặc định  `TARGET` là chip `esp32`
         - xem các chip hỗ trợ bằng `idf.py set-target --help`
     - Cấu hình `menuconfig`:
+        - Nếu trước đó đã chạy `idf.py menuconfig` thì chạy `idf.py fullclean` để xóa file build trước
         - Chạy `idf.py menuconfig` để mở menu cấu hình các tham số có thể đã được định sẵn trong code như wifi, mật khẩu, ... 
     - Biên dịch:
         - Chạy `idf.py build` để biên dịch chương trình.

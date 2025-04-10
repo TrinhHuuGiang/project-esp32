@@ -7,4 +7,5 @@ idf_component_register(
     "ledc_setup_handle.c"
     "mcpwm_setup_handle.c"
     INCLUDE_DIRS
-    ".")
+    "."
+    )
