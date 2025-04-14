@@ -4,5 +4,13 @@
 # CMakeLists in this exact order for cmake to work correctly
 cmake_minimum_required(VERSION 3.5)
 
+# include component
+set(EXTRA_COMPONENT_DIRS
+    "${CMAKE_SOURCE_DIR}/components/io_device")
+
+
+
+
+
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(main)

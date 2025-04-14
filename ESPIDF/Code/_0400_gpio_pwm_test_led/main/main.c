@@ -109,7 +109,7 @@ static void update_value_to_lcd(void* arg)
     {
         if(gpio_74HC165_check_flag_and_renew_register(s_gpio_74hc165_data, &set_state)) (*ret) = 1;
 
-        if( set_state == GPIO_74HC165_SET_FLAG )
+        if( (set_state == GPIO_74HC165_SET_FLAG) && (old_reg_value != s_gpio_74hc165_data->reg_state) )
         {
             // update
             old_reg_value = s_gpio_74hc165_data->reg_state;

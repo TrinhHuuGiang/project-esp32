@@ -1,0 +1,8 @@
+menu "DEV_____Main Configuration"
+
+
+config DEBUG_ENABLE
+    bool "Enable serial debug printing"
+    default y
+
+endmenu
