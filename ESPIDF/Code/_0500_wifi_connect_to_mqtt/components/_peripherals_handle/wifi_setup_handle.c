@@ -5,6 +5,12 @@
  */
 #include "wifi_setup_handle.h"
 
+ /**
+ * **********************************************************
+ * Variables
+ * **********************************************************
+ */
+static struct_wifi_state_t* s_wifi_state_table = NULL;
 
  /**
  * **********************************************************
@@ -33,29 +39,9 @@ _peripherals_err_t wifi_setup_init_lightweight_ip_inform()
 
 
 // 2. init event loop for `event task`
-_peripherals_err_t wifi_setup_init_event_loop(esp_event_loop_handle_t* even_task_loop_handle)
+_peripherals_err_t wifi_setup_init_default_event_loop()
 {
-    if(*even_task_loop_handle != NULL)
-    {
-        #if CONFIG_DEBUG_ENABLE !=0
-        send_peripheral_err_location(WIFI_SETUP_INPUT_EVENT_HANDLE_NOT_NULL, __FILE__, __LINE__, "even task handle input not NULL");
-        #endif
-        return WIFI_SETUP_INPUT_EVENT_HANDLE_NOT_NULL;
-    }
-
-    esp_event_loop_args_t event_loop_args =
-    {
-        .task_name       = WIFI_SETUP_EVENT_TASK_LOOP_NAME,
-        .queue_size      = WIFI_SETUP_EVENT_TASK_QUEUE_SIZE,
-        .task_stack_size = WIFI_SETUP_EVENT_TASK_STACK_SIZE,
-        .task_priority   = WIFI_SETUP_EVENT_TASK_PRIORITY,
-        .task_core_id    = WIFI_SETUP_EVENT_CORE_BIND_ID
-    };
-    esp_event_loop_create_default();
-    
-    esp_event_loop_handle_t even_task_loop_temp = NULL;
-
-    esp_err_t ret = esp_event_loop_create(&event_loop_args, &even_task_loop_temp);
+    esp_err_t ret = esp_event_loop_create_default();
 
     if(ret!=ESP_OK)
     {
@@ -64,8 +50,6 @@ _peripherals_err_t wifi_setup_init_event_loop(esp_event_loop_handle_t* even_task
         #endif
         return WIFI_SETUP_CREATE_EVENT_LOOP_FAILED;
     }
-
-    *even_task_loop_handle = even_task_loop_temp;
 
     return PERIPH_OK;
 }
@@ -102,6 +86,33 @@ _peripherals_err_t wifi_setup_create_interface_wifi_AP_link_LwIP(esp_netif_t** a
 
     *ap_net_if = esp_netif_create_default_wifi_ap(); // this API will call abort to stop program if error
 
+    // set up default IP
+    // Config ip
+    esp_netif_ip_info_t ip_info;
+    IP4_ADDR(&ip_info.ip, (WIFI_SETUP_AP_MODE_IP_ADDR >> 24) & 0xFF,
+                            (WIFI_SETUP_AP_MODE_IP_ADDR >> 16) & 0xFF,
+                            (WIFI_SETUP_AP_MODE_IP_ADDR >> 8)  & 0xFF,
+                            WIFI_SETUP_AP_MODE_IP_ADDR & 0xFF  );        // IP address
+    IP4_ADDR(&ip_info.gw, (WIFI_SETUP_AP_MODE_IP_ADDR >> 24) & 0xFF,
+                            (WIFI_SETUP_AP_MODE_IP_ADDR >> 16) & 0xFF,
+                            (WIFI_SETUP_AP_MODE_IP_ADDR >> 8)  & 0xFF,
+                            WIFI_SETUP_AP_MODE_IP_ADDR & 0xFF  );        // Gateway     
+    IP4_ADDR(&ip_info.netmask, (WIFI_SETUP_AP_MODE_NET_MASK >> 24) & 0xFF,
+                            (WIFI_SETUP_AP_MODE_NET_MASK >> 16) & 0xFF,
+                            (WIFI_SETUP_AP_MODE_NET_MASK >> 8)  & 0xFF,
+                            WIFI_SETUP_AP_MODE_NET_MASK & 0xFF  );       // Netmask
+
+    // apply
+    esp_err_t ret = esp_netif_set_ip_info(*ap_net_if, &ip_info);
+
+    if(ret!=ESP_OK)
+    {
+        #if CONFIG_DEBUG_ENABLE !=0
+        send_peripheral_err_location(WIFI_SETUP_AP_CHANGE_IP_INFORM_FAILED, __FILE__, __LINE__, esp_err_to_name(ret));
+        #endif
+        return WIFI_SETUP_AP_CHANGE_IP_INFORM_FAILED;
+    }
+
     return PERIPH_OK;
 }
 
@@ -132,10 +143,53 @@ _peripherals_err_t wifi_setup_init_wifi_driver()
 // =================================== 2. Configuration phase      ===================================
 // =================================== =========================== ===================================
 
+// wifi even handler
+_peripherals_err_t wifi_setup_wifi_event_handler
+(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
+{
+    // code logic state wifi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+}
+
+
 // Register into event loop to check wifi status
 _peripherals_err_t wifi_setup_regist_receive_event_task()
 {
+    esp_err_t ret = esp_event_handler_instance_register(
+        WIFI_EVENT,
+        ESP_EVENT_ANY_ID,
+        &wifi_setup_wifi_event_handler,
+        NULL,
+        NULL);
 
+    if(ret!=ESP_OK)
+    {
+        #if CONFIG_DEBUG_ENABLE !=0
+        send_peripheral_err_location(WIFI_SETUP_REGIST_EVENT_TASK_FAILED, __FILE__, __LINE__, esp_err_to_name(ret));
+        #endif
+        return WIFI_SETUP_REGIST_EVENT_TASK_FAILED;
+    }
+
+    return PERIPH_OK;
 }
 
 
@@ -143,18 +197,41 @@ _peripherals_err_t wifi_setup_regist_receive_event_task()
 
 
 // =================================== 2.5 Config wifi inform      ===================================
-// =================================== ==========================  ===================================
+// =================================== Warn: now using NVS flash   ===================================
+// =================================== becareful frequency call thes function can harm flash   =======
 // 0. choose mode for wifi driver
 _peripherals_err_t wifi_setup_set_wifi_mode(wifi_mode_t mode)
 {
-    esp_err_t ret = esp_wifi_set_mode(mode);
+    wifi_mode_t old_mode = WIFI_MODE_NULL;
+
+    esp_err_t ret = esp_wifi_get_mode(&old_mode);
+    if(ret!=ESP_OK)
+    {
+        #if CONFIG_DEBUG_ENABLE !=0
+        send_peripheral_err_location(WIFI_SETUP_GET_WIFI_MODE_FAILED, __FILE__, __LINE__, esp_err_to_name(ret));
+        #endif
+        return WIFI_SETUP_GET_WIFI_MODE_FAILED;
+    }
+
+    if(old_mode == mode)
+    {
+        return PERIPH_OK; // ok no write to nvs :) no thing changed
+    }
+
+    // debug
+    #if CONFIG_DEBUG_ENABLE !=0
+    fprintf(stderr, "\nStart write [mode] to nvs\n", (void*)old_country_code, old_country_code);
+    #endif
+
+    // if oldmode != expected mode
+    ret = esp_wifi_set_mode(mode);
 
     if(ret!=ESP_OK)
     {
         #if CONFIG_DEBUG_ENABLE !=0
-        send_peripheral_err_location(WIFI_SETUP_CHOOSE_WIFI_MODE_FAILED, __FILE__, __LINE__, esp_err_to_name(ret));
+        send_peripheral_err_location(WIFI_SETUP_SET_WIFI_MODE_FAILED, __FILE__, __LINE__, esp_err_to_name(ret));
         #endif
-        return WIFI_SETUP_CHOOSE_WIFI_MODE_FAILED;
+        return WIFI_SETUP_SET_WIFI_MODE_FAILED;
     }
 
     return PERIPH_OK;
@@ -163,9 +240,34 @@ _peripherals_err_t wifi_setup_set_wifi_mode(wifi_mode_t mode)
 // 1. Wifi country
 _peripherals_err_t wifi_setup_set_wifi_country()
 {
+    char old_country_code[4] = {0};
+
+    // debug
+    #if CONFIG_DEBUG_ENABLE !=0
+    fprintf(stderr, "\nCheck country string - old address = [%p] | [%s] \n", (void*)old_country_code, old_country_code);
+    #endif
+
+    esp_err_t ret = esp_wifi_get_country_code(old_country_code);
+
+    // debug
+    
+    #if CONFIG_DEBUG_ENABLE !=0
+    fprintf(stderr, "\nCheck country string - new address = [%p] | [%s] \n", (void*)old_country_code, old_country_code);
+    #endif
+
+    if(! strcmp(old_country_code, WIFI_SETUP_SET_DEFAULT_COUNTRY_CODE))
+    {
+        return PERIPH_OK;
+    }
+
+    // debug
+    #if CONFIG_DEBUG_ENABLE !=0
+    fprintf(stderr, "\nStart write [country] to nvs\n", (void*)old_country_code, old_country_code);
+    #endif
+
     // esp_wifi_set_country(); // this function not encourage because it not check valid infor input
     // using esp_wifi_set_country_code() instead
-    esp_err_t ret = esp_wifi_set_country_code(WIFI_SETUP_SET_DEFAULT_COUNTRY_CODE,
+    ret = esp_wifi_set_country_code(WIFI_SETUP_SET_DEFAULT_COUNTRY_CODE,
         WIFI_SETUP_CHOOSE_AUTO_FIX_COUNTRY); // do not support code VN == vietnam, so we can use "01"(world safe mode) 
 
     if(ret!=ESP_OK)
@@ -181,20 +283,27 @@ _peripherals_err_t wifi_setup_set_wifi_country()
 
 // 2. Wifi config
 
-_peripherals_err_t wifi_setup_set_wifi_sta_config(uint8_t ssid[32] , uint8_t password[64], uint8_t bssid[6], bool bssid_enable)
-{ 
-    wifi_config_t conf = {
-        .sta = { // maximum str_len 31 for ssid, and 63 for password
-            .ssid = ssid,                                   // ssid     << string , because if be array, 
-                                                            // system will handle whole 32 byte
-                                                            // and sure that read overlength -> error
-            .password = password,                           // password << string 
-            .bssid = bssid,                                 // BSSID (MAC router) << array
-            .bssid_set = bssid_enable,                      // enable check BSSID
-            .threshold.authmode = ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD       // select authentication mode
-        }
-    };
+_peripherals_err_t wifi_setup_set_wifi_sta_config(uint8_t ssid[32] , uint8_t password[64], uint8_t bssid[6])
+{
 
+    // init
+    wifi_config_t conf = {0};  // full clean init wifi config 0
+
+    strncpy((char*)conf.sta.ssid, (const char*)ssid, sizeof(conf.sta.ssid) - 1);
+    conf.sta.ssid[sizeof(conf.sta.ssid) - 1] = '\0';
+    
+    strncpy((char*)conf.sta.password, (const char*)password, sizeof(conf.sta.password) - 1);
+    conf.sta.password[sizeof(conf.sta.password) - 1] = '\0';
+    
+    memcpy(conf.sta.bssid, bssid, sizeof(conf.sta.bssid));
+
+    conf.sta.bssid_set = true; // using bssid cho connect with ssid and password
+
+    conf.sta.threshold.authmode = ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD; // this config affect on scan wifi, all wifi have less
+    // sercure than default authentication setup in menuconfig will be ignore
+    // it still be using choose wifi destination
+    
+    // config
     esp_err_t ret = esp_wifi_set_config(WIFI_IF_STA , &conf);
 
     if(ret!=ESP_OK)
@@ -211,17 +320,22 @@ _peripherals_err_t wifi_setup_set_wifi_sta_config(uint8_t ssid[32] , uint8_t pas
 
 _peripherals_err_t wifi_setup_set_wifi_ap_config(uint8_t ssid[32], uint8_t password[64])
 {
-    wifi_config_t conf = {
-        .ap = {
-            .ssid = ssid,
-            .ssid_len = strlen(ssid),
-            .channel = WIFI_SETUP_WIFI_CONFIG_AP_CHANNEL_DEFAULT,
-            .password = password,
-            .max_connection = WIFI_SETUP_WIFI_CONFIG_AP_MAX_CONN,
-            .authmode = WIFI_SETUP_WIFI_CONFIG_AP_AUTHEN_MODE
-        },
-    };
+    // init
+    wifi_config_t conf = {0};
 
+    strncpy((char*)conf.ap.ssid, (const char*)ssid, sizeof(conf.ap.ssid) - 1);
+    conf.ap.ssid[sizeof(conf.sta.ssid) - 1] = '\0';
+
+    conf.ap.ssid_len = strlen(conf.ap.ssid);
+
+    strncpy((char*)conf.ap.password, (const char*)password, sizeof(conf.ap.password) - 1);
+    conf.ap.password[sizeof(conf.sta.password) - 1] = '\0';
+
+    conf.ap.channel = WIFI_SETUP_WIFI_CONFIG_AP_CHANNEL_DEFAULT;
+    conf.ap.max_connection = WIFI_SETUP_WIFI_CONFIG_AP_MAX_CONN;
+    conf.ap.authmode = WIFI_SETUP_WIFI_CONFIG_AP_AUTHEN_MODE;
+
+    // config
     esp_err_t ret = esp_wifi_set_config(WIFI_IF_AP , &conf);
 
     if(ret!=ESP_OK)
@@ -241,9 +355,48 @@ _peripherals_err_t wifi_setup_set_wifi_ap_config(uint8_t ssid[32], uint8_t passw
 // =================================== ==========================  ===================================
 
 // 1. after config all inform for wifi, start wifi
+// Note:
+// this function will alloc a struct to handle state of event feed back
 _peripherals_err_t wifi_setup_start_wifi_driver()
 {
-    
+    // check state table
+
+    if(s_wifi_state_table!=NULL)
+    {
+        #if CONFIG_DEBUG_ENABLE !=0
+        send_peripheral_err_location(WIFI_SETUP_WIFI_STATE_TABLE_NOT_NULL, __FILE__, __LINE__, "wifi state table not NULL");
+        #endif
+        return WIFI_SETUP_WIFI_STATE_TABLE_NOT_NULL;
+    }
+
+    // create state table
+    s_wifi_state_table = (struct_wifi_state_t*)calloc(1, sizeof(struct_wifi_state_t));
+
+    if(s_wifi_state_table == NULL)
+    {
+        #if CONFIG_DEBUG_ENABLE !=0
+        send_peripheral_err_location(WIFI_SETUP_WIFI_STATE_TABLE_INIT_FAILED, __FILE__, __LINE__, "wifi state table not NULL");
+        #endif
+        return WIFI_SETUP_WIFI_STATE_TABLE_INIT_FAILED;
+    }
+
+    // init default mutex key
+    s_wifi_state_table->wifi_state_mutex = xSemaphoreCreateMutex();
+    s_wifi_state_table->sta_collision_conn_scan_mutex = xSemaphoreCreateMutex();
+
+    if( (s_wifi_state_table->wifi_state_mutex == NULL) || 
+    s_wifi_state_table->sta_collision_conn_scan_mutex == NULL)
+    {
+        free(s_wifi_state_table);
+        s_wifi_state_table = NULL;
+
+        #if CONFIG_DEBUG_ENABLE !=0
+        send_peripheral_err_location(WIFI_SETUP_WIFI_STATE_TABLE_CREATE_MUTEX_FAILED, __FILE__, __LINE__, "wifi state table not NULL");
+        #endif
+        return WIFI_SETUP_WIFI_STATE_TABLE_CREATE_MUTEX_FAILED;
+    }
+
+    // wifi start
     esp_err_t ret = esp_wifi_start();
 
     if(ret!=ESP_OK)
@@ -267,8 +420,8 @@ _peripherals_err_t wifi_setup_start_scan_wifi()
 {
     wifi_scan_config_t wifi_scan_config =
     {
-        .bssid = WIFI_SETUP_WIFI_SCAN_SSID,
-        .ssid  = WIFI_SETUP_WIFI_SCAN_BSSID,
+        .bssid = WIFI_SETUP_WIFI_SCAN_BSSID,
+        .ssid  = WIFI_SETUP_WIFI_SCAN_SSID,
         .channel = WIFI_SETUP_WIFI_SCAN_HIDEN_WF,
         .scan_type = WIFI_SETUP_WIFI_SCAN_TYPE,
         .scan_time.active=
@@ -277,6 +430,8 @@ _peripherals_err_t wifi_setup_start_scan_wifi()
             .max = WIFI_SETUP_WIFI_ACTIVE_SCAN_MAX_TIME_MS
         }
     };
+
+    // set scan authen mode
 
     esp_err_t ret = esp_wifi_scan_start(&wifi_scan_config , WIFI_SETUP_WIFI_SCAN_BLOCK);
 
@@ -411,6 +566,26 @@ _peripherals_err_t wifi_setup_stop_wifi_driver()
         return WIFI_SETUP_STOP_WIFI_FAILED;
     }
 
+    // free state struct
+    if(s_wifi_state_table == NULL)
+    {
+        #if CONFIG_DEBUG_ENABLE !=0
+        send_peripheral_err_location(WIFI_SETUP_WIFI_STATE_TABLE_IS_NULL, __FILE__, __LINE__, "can't free NULL table");
+        #endif
+        return WIFI_SETUP_WIFI_STATE_TABLE_IS_NULL;
+    }
+
+    if(s_wifi_state_table->sta_dest_ap_connected != NULL) free(s_wifi_state_table->sta_dest_ap_connected);
+
+    for(int i = 0; i < WIFI_SETUP_WIFI_CONFIG_AP_MAX_CONN; i++)
+    {
+        if(s_wifi_state_table->ap_list_sta_connected[i] != NULL) free(s_wifi_state_table->ap_list_sta_connected[i]);
+    }
+
+    free(s_wifi_state_table);
+    s_wifi_state_table = NULL;
+
+    // ok
     return PERIPH_OK;
 }
 
@@ -436,11 +611,13 @@ _peripherals_err_t wifi_setup_de_init_wifi_driver()
 
 
 // =================================== Extend                      ===================================
-// =================================== ==========================  ===================================
+// =================================== Delele/free below case if u want but keep be mind before do ===
 
-// delete wifi interface
-// free loop
-// clear LwIP
+// delete wifi interface if need
 
-// this case can auto clear after reset chip
+// free loop / warn that default loop using for vary perpose, not only wifi/ip
+
+// clear LwIP if need
+
+// these behind extend case can auto clear after reset chip
 

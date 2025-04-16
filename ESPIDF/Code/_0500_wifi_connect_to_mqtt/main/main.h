@@ -22,10 +22,12 @@
 #include "i2c_master_handle.h" // i2c
 #include "spi_master_handle.h" // spi
 #include "gpio_setup_handle.h" // gpio
-#include "ledc_setup_handle.h" // pwm
+#include "ledc_setup_handle.h" // ledc pwm
+#include "wifi_setup_handle.h" // wifi
+
 
 #include "i2c_ssd1306.h"
-#include "gpio_74hc165.h"
+#include "spi_sd_mount_to_fs.h"
 
 
 // debug

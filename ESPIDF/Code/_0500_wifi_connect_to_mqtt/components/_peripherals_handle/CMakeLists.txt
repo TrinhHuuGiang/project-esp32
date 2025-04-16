@@ -6,6 +6,7 @@ idf_component_register(
     "gpio_setup_handle.c"
     "ledc_setup_handle.c"
     "mcpwm_setup_handle.c"
+    "wifi_setup_handle.c"
     INCLUDE_DIRS
     "."
     )
