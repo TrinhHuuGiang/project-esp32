@@ -83,8 +83,8 @@ typedef enum
 
 
     // Wifi
+    WIFI_SETUP_CREATE_DEFAULT_EVENT_LOOP_FAILED,
     WIFI_SETUP_INIT_NETIF_LWIP_FAILED,
-    WIFI_SETUP_CREATE_EVENT_LOOP_FAILED,
     WIFI_SETUP_STA_NETIF_INPUT_NOT_NULL,
     WIFI_SETUP_AP_NETIF_INPUT_NOT_NULL,
     WIFI_SETUP_AP_CHANGE_IP_INFORM_FAILED,
@@ -106,6 +106,7 @@ typedef enum
     WIFI_SETUP_DISCONNECT_TO_WIFI_FAILED,
     WIFI_SETUP_STOP_WIFI_FAILED,
     WIFI_SETUP_WIFI_STATE_TABLE_IS_NULL,
+    WIFI_SETUP_UN_REGIST_EVENT_TASK_FAILED,
     WIFI_SETUP_DE_INIT_WIFI_DRIVER_CONFIG_FAILED,
 
 
@@ -118,6 +119,14 @@ typedef enum
 
 } _peripherals_err_t;
 
+
+// ---------------Bit manipulation
+#define SET_BIT(x, n)   ((x) |= (1 << (n)))
+#define CLR_BIT(x, n)   ((x) &= ~(1 << (n)))
+#define TOG_BIT(x, n)   ((x) ^= (1 << (n)))
+#define GET_BIT(x, n)   (((x) >> (n)) & 1)
+
+
 /**
  * **********************************************************
  * API
@@ -127,5 +136,7 @@ typedef enum
  * @brief Print error code, file, line, comment
  */
 void send_peripheral_err_location(_peripherals_err_t code, char* file, int line,const char* comment);
+
+
 
 #endif
