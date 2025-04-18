@@ -389,7 +389,13 @@ _peripherals_err_t wifi_setup_start_wifi_driver(uint8_t *busy);
 // note: do not scan while connect (step 4) , connect function will abort scan and return error code
 _peripherals_err_t wifi_setup_start_scan_wifi(uint8_t *busy);
 
-_peripherals_err_t wifi_setup_get_wifi_list_scanned(uint8_t* busy, uint16_t *number, wifi_ap_record_t *ap_records);
+
+// get list scanned
+// note that esp wifi will copy value to (wifi_ap_record_t) , so sure that check 'number' 
+// and create enough storage save the list
+// input a pointer level 2, point to a pointer managing NULL
+// return an array is alloc dynamic, copy list scanned
+_peripherals_err_t wifi_setup_get_wifi_list_scanned(uint8_t* busy, uint16_t *number, wifi_ap_record_t **ap_records);
 
 
 

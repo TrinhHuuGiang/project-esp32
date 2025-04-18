@@ -6,29 +6,40 @@
 #include "main.h"
 #define MAIN_TAG "MAIN_LOOP"
 
+
+// AP info
 #define WIFI_AP_SSID "Hello ESP32"
 #define WIFI_AP_PASSWORD "123123123"
 
 #define WIFI_RESET_TO_DEFAULT_BUTTON (25)
+
+
+// STA info
+#define WIFI_SCAN_WIFI_AROUND_BUTTON (13)
 
 /**
  * **********************************************************
  * Variables
  * **********************************************************
  */
-static uint8_t s_wifi_holding = 1;// pull up default
+static uint8_t s_wifi_reset_factory_holding = 1; // pull up default, low is holding button
+static uint8_t s_wifi_scan_wifi_holding = 1;     // pull up default, low is holding button
 
 /**
  * **********************************************************
  * Prototypes
  * **********************************************************
  */
-static int init_factory_reset_wifi_button();
+static int init_special_wifi_button();
 
 // wifi factory reset
 // click a button to set default wifi status :)
 // no using interrupt low level, it not stable
 static void reset_wifi_to_factory_handler(void* arg);
+
+
+// handle hold button and scan wifi around, then print to serial
+static void scan_wifi_handler(void* arg);
 
 /**
  * **********************************************************
@@ -87,13 +98,14 @@ void app_main(void)
     // continue program while wifi driver handle event
 
     // init button reset wifi
-    if(init_factory_reset_wifi_button()) return;
+    if(init_special_wifi_button()) return;
 
 
     // create led handle task
-    int ret = 0;
+    int ret = 0; // <<- notify father task and all task using this flag is some thing wrong happened, clean and return to retart for safe
 
     xTaskCreate(reset_wifi_to_factory_handler, "Wifi factory handler task", 2048, &ret, 5, NULL);
+    xTaskCreate(scan_wifi_handler, "Wifi scan handler task", 2048, &ret, 5, NULL);
     
 
     while(!ret)
@@ -108,18 +120,22 @@ void app_main(void)
 }
 
 // init button
-static int init_factory_reset_wifi_button()
+static int init_special_wifi_button()
 {
     // install isr service for GPIO
     if(gpio_setup_install_isr_service_for_gpio_system()) return 1;
 
     if(gpio_setup_reset_pin_to_origin(WIFI_RESET_TO_DEFAULT_BUTTON)) return 1;
+    if(gpio_setup_reset_pin_to_origin(WIFI_SCAN_WIFI_AROUND_BUTTON)) return 1;
 
     // gpio in
     if(gpio_setup_io_direction(WIFI_RESET_TO_DEFAULT_BUTTON,GPIO_MODE_INPUT)) return 1;
+    if(gpio_setup_io_direction(WIFI_SCAN_WIFI_AROUND_BUTTON,GPIO_MODE_INPUT)) return 1;
 
     // set pull
     if(gpio_setup_pull_res(WIFI_RESET_TO_DEFAULT_BUTTON,GPIO_PULLUP_ONLY)) return 1;
+    if(gpio_setup_pull_res(WIFI_SCAN_WIFI_AROUND_BUTTON,GPIO_PULLUP_ONLY)) return 1;
+
 
     return 0;
 }
@@ -135,13 +151,13 @@ static void reset_wifi_to_factory_handler(void* arg)
     while(! (*ret))
     {
         // first check
-        if(gpio_setup_get_logic_level(WIFI_RESET_TO_DEFAULT_BUTTON, &s_wifi_holding)) 
+        if(gpio_setup_get_logic_level(WIFI_RESET_TO_DEFAULT_BUTTON, &s_wifi_reset_factory_holding)) 
         {
             (*ret) = 1;
             break;
         }
 
-        while(!s_wifi_holding) // pull up : if logic 0 -> holding, 1 is idle
+        while(!s_wifi_reset_factory_holding) // pull up : if logic 0 -> holding, 1 is idle
         {
             ESP_LOGE(MAIN_TAG, "Prepare reset wifi to factory [%d]",count_temp);
 
@@ -171,7 +187,7 @@ static void reset_wifi_to_factory_handler(void* arg)
             vTaskDelay(pdMS_TO_TICKS(1000));// 1s
 
             // recheck
-            if(gpio_setup_get_logic_level(WIFI_RESET_TO_DEFAULT_BUTTON, &s_wifi_holding)) 
+            if(gpio_setup_get_logic_level(WIFI_RESET_TO_DEFAULT_BUTTON, &s_wifi_reset_factory_holding)) 
             {
                 (*ret) = 1;
                 break;
@@ -180,6 +196,121 @@ static void reset_wifi_to_factory_handler(void* arg)
 
         // reset count
         count_temp = 5;
+
+        //delay
+        vTaskDelay(pdMS_TO_TICKS(200));
+    }
+    // exit
+    vTaskDelete(NULL);
+}
+
+
+// handle hold button and scan wifi around, then print to serial
+static void scan_wifi_handler(void* arg)
+{
+    int* ret = (int*)arg;
+
+    int count_temp = 3;
+
+    while(! (*ret))
+    {
+        // first check
+        if(gpio_setup_get_logic_level(WIFI_SCAN_WIFI_AROUND_BUTTON, &s_wifi_scan_wifi_holding)) 
+        {
+            (*ret) = 1;
+            break;
+        }
+
+        while(!s_wifi_scan_wifi_holding) // pull up : if logic 0 -> holding, 1 is idle
+        {
+            ESP_LOGE(MAIN_TAG, "Prepare scan wifi around you [%d]",count_temp);
+
+            if(!count_temp) // ok start scan
+            {
+                uint8_t busy_state = WIFI_SETUP_COMMAND_REFUSED;
+                uint16_t number_wifi = 0;
+                wifi_ap_record_t *ap_records = NULL;
+
+                // try scan
+                while(busy_state == WIFI_SETUP_COMMAND_REFUSED)
+                {
+                    if(wifi_setup_start_scan_wifi(&busy_state))
+                    {
+                        (*ret) = 1;
+                        break;
+                    }
+                }
+
+                // try read
+                busy_state = WIFI_SETUP_COMMAND_REFUSED;
+                while(busy_state == WIFI_SETUP_COMMAND_REFUSED)
+                {
+                    ESP_LOGI("Scan wifi", "SCANNING...");
+                    vTaskDelay(pdMS_TO_TICKS(1000)); // wait before check , wifi need a second to scan
+                    ESP_LOGI("Scan wifi", "SCANNING.");
+
+                    if(wifi_setup_get_wifi_list_scanned(&busy_state, &number_wifi, &ap_records))
+                    {
+                        (*ret) = 1;
+                        break;
+                    }
+                }
+                
+                // try printf
+                ESP_LOGI("Scan wifi", "CHECKING LIST SCANNED");
+                if(number_wifi > 0)
+                {
+                    for(uint16_t i = 0; i < number_wifi ; i++)
+                    {
+                        fprintf(stderr,"[%u] SSID: %s\n    MAC: ", i, ap_records[i].ssid);
+                        for(int j = 0; j< sizeof(ap_records[i].bssid); j++)
+                        {
+                            if(j!=0)
+                            {
+                                fprintf(stderr,":");
+                            }
+                            fprintf(stderr,"%02X", ap_records[i].bssid[j]);
+                        }
+                        fprintf(stderr,"\n");
+                    }
+                    
+                    // free after use
+                    free(ap_records);
+                    ap_records = NULL;
+                }
+                else
+                {
+                    ESP_LOGW("Scan wifi", "No AP a round you");
+                }
+                
+            }
+
+            // count down
+            count_temp --;
+
+
+            // hanging if scan done
+            // scan done, release button
+            if(count_temp < 0)
+            {
+                ESP_LOGE(MAIN_TAG, "Please release scan button");
+                count_temp = -1;
+            }
+
+            // delay
+            
+            vTaskDelay(pdMS_TO_TICKS(1000));// 1s
+
+            // recheck
+            if(gpio_setup_get_logic_level(WIFI_SCAN_WIFI_AROUND_BUTTON, &s_wifi_scan_wifi_holding)) 
+            {
+                (*ret) = 1;
+                break;
+            }
+        }
+
+        // reset count
+        count_temp = 3;
 
         //delay
         vTaskDelay(pdMS_TO_TICKS(200));

@@ -865,8 +865,16 @@ return_ok:
 }
 
 // get list scanned
-_peripherals_err_t wifi_setup_get_wifi_list_scanned(uint8_t* busy, uint16_t *number, wifi_ap_record_t *ap_records)
+_peripherals_err_t wifi_setup_get_wifi_list_scanned(uint8_t* busy, uint16_t *number, wifi_ap_record_t **ap_records)
 {
+    if(*ap_records != NULL)
+    {
+        #if CONFIG_DEBUG_ENABLE !=0
+        send_peripheral_err_location(WIFI_SETUP_WIFI_AP_RECORD_NOT_NULL, __FILE__, __LINE__, "value of record pointer not NULL");
+        #endif
+        return WIFI_SETUP_WIFI_AP_RECORD_NOT_NULL;
+    }
+
     // check state flags
     // block all other task
     xSemaphoreTake(s_wifi_state_table->wifi_state_mutex, portMAX_DELAY);   
@@ -901,16 +909,32 @@ _peripherals_err_t wifi_setup_get_wifi_list_scanned(uint8_t* busy, uint16_t *num
     }
 
     // get ap list
-    ret = esp_wifi_scan_get_ap_records(number, ap_records);
-
-    if(ret!=ESP_OK)
+    if(*number > 0)
     {
-        #if CONFIG_DEBUG_ENABLE !=0
-        send_peripheral_err_location(WIFI_SETUP_GET_AP_LIST_FAILED, __FILE__, __LINE__, esp_err_to_name(ret));
-        #endif
+        *ap_records = calloc(*number, sizeof(wifi_ap_record_t));
 
-        xSemaphoreGive(s_wifi_state_table->wifi_state_mutex);
-        return WIFI_SETUP_GET_AP_LIST_FAILED;
+        if(*ap_records == NULL)
+        {
+            #if CONFIG_DEBUG_ENABLE !=0
+            send_peripheral_err_location(WIFI_SETUP_WIFI_AP_RECORD_ALLOC_FAILED, __FILE__, __LINE__, "Failed alloc memory for ap records");
+            #endif
+    
+            xSemaphoreGive(s_wifi_state_table->wifi_state_mutex);
+            return WIFI_SETUP_WIFI_AP_RECORD_ALLOC_FAILED;
+
+        }
+
+        ret = esp_wifi_scan_get_ap_records(number, *ap_records);
+    
+        if(ret!=ESP_OK)
+        {
+            #if CONFIG_DEBUG_ENABLE !=0
+            send_peripheral_err_location(WIFI_SETUP_GET_AP_LIST_FAILED, __FILE__, __LINE__, esp_err_to_name(ret));
+            #endif
+    
+            xSemaphoreGive(s_wifi_state_table->wifi_state_mutex);
+            return WIFI_SETUP_GET_AP_LIST_FAILED;
+        }
     }
 
     // command done
