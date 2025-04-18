@@ -23,6 +23,20 @@ static struct_wifi_state_t* s_wifi_state_table = NULL;
 // 0. Wifi start NVS memory before go to step 2
 // check the box:
 // Compiler config -> Wi-Fi -> WiFi NVS flash 
+_peripherals_err_t wifi_setup_init_nvs_flash()
+{
+    esp_err_t ret = nvs_flash_init();
+
+    if(ret!=ESP_OK)
+    {
+        #if CONFIG_DEBUG_ENABLE !=0
+        send_peripheral_err_location(WIFI_SETUP_INIT_NVS_FLASH_FAILED, __FILE__, __LINE__, esp_err_to_name(ret));
+        #endif
+        return WIFI_SETUP_INIT_NVS_FLASH_FAILED;
+    }
+
+    return PERIPH_OK;
+}
 
 // 1. default event loop
 // this function create default event loop for wifi
@@ -94,7 +108,10 @@ _peripherals_err_t wifi_setup_create_interface_wifi_AP_link_LwIP(esp_netif_t** a
         return WIFI_SETUP_AP_NETIF_INPUT_NOT_NULL;
     }
 
+    
+    // create default ap interface
     *ap_net_if = esp_netif_create_default_wifi_ap(); // this API will call abort to stop program if error
+
 
     // set up default IP
     // Config ip
@@ -113,16 +130,22 @@ _peripherals_err_t wifi_setup_create_interface_wifi_AP_link_LwIP(esp_netif_t** a
                             WIFI_SETUP_AP_MODE_NET_MASK & 0xFF  );       // Netmask
 
     // apply
-    esp_err_t ret = esp_netif_set_ip_info(*ap_net_if, &ip_info);
+    esp_err_t ret1 = esp_netif_dhcps_stop(*ap_net_if);
 
-    if(ret!=ESP_OK)
+    esp_err_t ret2 = esp_netif_set_ip_info(*ap_net_if, &ip_info);
+
+    esp_err_t ret3 = esp_netif_dhcps_start(*ap_net_if);
+
+    if(ret1!=ESP_OK   || ret2!=ESP_OK  || ret3!=ESP_OK)
     {
         #if CONFIG_DEBUG_ENABLE !=0
-        send_peripheral_err_location(WIFI_SETUP_AP_CHANGE_IP_INFORM_FAILED, __FILE__, __LINE__, esp_err_to_name(ret));
+        send_peripheral_err_location(WIFI_SETUP_AP_CHANGE_IP_INFORM_FAILED, __FILE__, __LINE__, 
+            esp_err_to_name(ret1!=ESP_OK ? ret1 : (ret2!=ESP_OK ? ret2 : ret3) ));
         #endif
         return WIFI_SETUP_AP_CHANGE_IP_INFORM_FAILED;
     }
 
+    // ok
     return PERIPH_OK;
 }
 
@@ -500,7 +523,7 @@ _peripherals_err_t wifi_setup_regist_receive_event_task()
     if((ret1!=ESP_OK)||(ret2!=ESP_OK))
     {
         #if CONFIG_DEBUG_ENABLE !=0
-        send_peripheral_err_location(WIFI_SETUP_REGIST_EVENT_TASK_FAILED, __FILE__, __LINE__, esp_err_to_name(ret));
+        send_peripheral_err_location(WIFI_SETUP_REGIST_EVENT_TASK_FAILED, __FILE__, __LINE__, esp_err_to_name(ret1 != ESP_OK ? ret1 : ret2));
         #endif
         return WIFI_SETUP_REGIST_EVENT_TASK_FAILED;
     }
@@ -651,7 +674,7 @@ _peripherals_err_t wifi_setup_set_wifi_ap_config(uint8_t ssid[32], uint8_t passw
     strncpy((char*)conf.ap.ssid, (const char*)ssid, sizeof(conf.ap.ssid) - 1);
     conf.ap.ssid[sizeof(conf.ap.ssid) - 1] = '\0';
 
-    conf.ap.ssid_len = strlen(conf.ap.ssid);
+    conf.ap.ssid_len = strlen((const char *)conf.ap.ssid);
 
     strncpy((char*)conf.ap.password, (const char*)password, sizeof(conf.ap.password) - 1);
     conf.ap.password[sizeof(conf.ap.password) - 1] = '\0';

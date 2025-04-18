@@ -32,6 +32,7 @@
 #include "esp_wifi.h"
 #include "esp_wifi_types.h"
 #include "esp_event.h"
+
 #include "nvs_flash.h"
 
 #include "lwip/err.h"
@@ -41,19 +42,19 @@
 //user
 #include "_peripherals_err.h"
 
-// wifi default inititial refer from esp_wifi.h
-#define WIFI_SETUP_EVENT_TASK_LOOP_NAME    "wifi event task"
-#define WIFI_SETUP_EVENT_TASK_QUEUE_SIZE   CONFIG_ESP_SYSTEM_EVENT_QUEUE_SIZE
-#define WIFI_SETUP_EVENT_TASK_STACK_SIZE   ESP_TASKD_EVENT_STACK
-#define WIFI_SETUP_EVENT_TASK_PRIORITY     ESP_TASKD_EVENT_PRIO
-#define WIFI_SETUP_EVENT_CORE_BIND_ID      0
-
 // ap mode ip
 #define WIFI_SETUP_AP_MODE_IP_ADDR         ( (192 << 24) | (168 << 16) | (1<<8)   | (1) )
 #define WIFI_SETUP_AP_MODE_NET_MASK        ( (255 << 24) | (255 << 16) | (255<<8) | (0) ) // C class network by classful
 
 // country set infor
-#define WIFI_SETUP_SET_DEFAULT_COUNTRY_CODE    "01" // world safe mode
+#define WIFI_SETUP_SET_DEFAULT_COUNTRY_CODE    "01 " // world safe mode
+                                                     // note: alway have third octet
+                                                    // rule country code :
+                                                    //
+                                                    // Supported country codes are "01"(world safe mode) "AT","AU","BE","BG","BR", "CA","CH","CN","CY","CZ","DE","DK","EE","ES","FI","FR","GB","GR","HK","HR","HU", "IE","IN","IS","IT","JP","KR","LI","LT","LU","LV","MT","MX","NL","NO","NZ","PL","PT", "RO","SE","SI","SK","TW","US"
+                                                    // When country code "01" (world safe mode) is set, SoftAP mode won't contain country IE.
+                                                    // The default country is "CN" and ieee80211d_enabled is TRUE.
+                                                    // The third octet of country code string is one of the following: ' ', 'O', 'I', 'X', otherwise it is considered as ' '.
 #define WIFI_SETUP_CHOOSE_AUTO_FIX_COUNTRY     (1)
 
 
@@ -249,6 +250,9 @@ typedef struct
 // 0. Wifi start NVS memory before go to step 2
 // check the box:
 // Compiler config -> Wi-Fi -> WiFi NVS flash 
+_peripherals_err_t wifi_setup_init_nvs_flash();
+
+
 
 // 1. default event loop
 // this function create default event loop for wifi

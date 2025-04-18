@@ -9,4 +9,6 @@ idf_component_register(
     "wifi_setup_handle.c"
     INCLUDE_DIRS
     "."
+    REQUIRES
+    nvs_flash
     )
