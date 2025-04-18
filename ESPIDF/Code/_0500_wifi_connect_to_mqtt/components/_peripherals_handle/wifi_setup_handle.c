@@ -14,6 +14,14 @@ static struct_wifi_state_t* s_wifi_state_table = NULL;
 
  /**
  * **********************************************************
+ * Prototype
+ * **********************************************************
+ */
+// compare client id, support event task handler check when disconnect with client
+static int compare_client_id(ap_list_client_connected_t* a, wifi_event_ap_stadisconnected_t* b);
+
+ /**
+ * **********************************************************
  * Codes
  * **********************************************************
  */
@@ -361,7 +369,10 @@ void wifi_setup_wifi_event_handler
                 CLR_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_CONNECTING);
 
                 // get inform network
-                
+                s_wifi_state_table->sta_dest_ap_connected = calloc(1, sizeof(wifi_event_sta_connected_t));
+
+                memcpy(s_wifi_state_table->sta_dest_ap_connected, event_data, sizeof(wifi_event_sta_connected_t));
+
                 break;
 
             case WIFI_EVENT_STA_DISCONNECTED:
@@ -373,6 +384,9 @@ void wifi_setup_wifi_event_handler
                 CLR_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_DISCONNECTING);
 
                 // clear net connected
+                free(s_wifi_state_table->sta_dest_ap_connected);
+                
+                s_wifi_state_table->sta_dest_ap_connected = NULL;
 
                 break;
                 
@@ -414,15 +428,39 @@ void wifi_setup_wifi_event_handler
                 s_wifi_state_table->ap_number_sta_connected ++;
 
                 // + add new ap to list
+                ap_list_client_connected_t* new_client = calloc(1, sizeof(ap_list_client_connected_t));
+
+                memcpy(&(new_client->client_connected_inf), event_data, sizeof(wifi_event_ap_staconnected_t));
+
+                LL_PREPEND(s_wifi_state_table->ap_list_client_connected,new_client);
+
+                // printf notify new aid
+                #if CONFIG_DEBUG_ENABLE !=0
+                fprintf(stderr, "\nAp mode - new AID [%u]\n", ((wifi_event_ap_staconnected_t*)event_data)->aid);
+                #endif
 
                 break;
             
             case WIFI_EVENT_AP_STADISCONNECTED:
-
                 // + count down number connected
                 s_wifi_state_table->ap_number_sta_connected --;
 
                 // + kick ap out of list
+                ap_list_client_connected_t* rm_client = NULL;
+
+                // find node to delete
+                LL_SEARCH(s_wifi_state_table->ap_list_client_connected, rm_client, 
+                    (wifi_event_ap_stadisconnected_t*)event_data, compare_client_id);
+
+                // delete node
+                LL_DELETE(s_wifi_state_table->ap_list_client_connected, rm_client);
+
+                free(rm_client);
+                
+                // printf notify delete aid
+                #if CONFIG_DEBUG_ENABLE !=0
+                fprintf(stderr, "\nAP mode - free AID [%u]\n", ((wifi_event_ap_stadisconnected_t*)event_data)->aid);
+                #endif
 
                 break;
 
@@ -480,7 +518,7 @@ _peripherals_err_t wifi_setup_regist_receive_event_task()
     }
 
     // create state table
-    s_wifi_state_table = (struct_wifi_state_t*)calloc(1, sizeof(struct_wifi_state_t));
+    s_wifi_state_table = (struct_wifi_state_t*)calloc(1, sizeof(struct_wifi_state_t)); // << must be calloc, lot of value need init 0 (NULL), do not use malloc
 
     if(s_wifi_state_table == NULL)
     {
@@ -826,7 +864,7 @@ return_ok:
 
 }
 
-
+// get list scanned
 _peripherals_err_t wifi_setup_get_wifi_list_scanned(uint8_t* busy, uint16_t *number, wifi_ap_record_t *ap_records)
 {
     // check state flags
@@ -1115,11 +1153,18 @@ _peripherals_err_t wifi_setup_unregister_event_task()
 
     vSemaphoreDelete(s_wifi_state_table->wifi_state_mutex); // delete mutex
 
+    // delete destintion AP old information in STA mode if it not NULL
     if(s_wifi_state_table->sta_dest_ap_connected != NULL) free(s_wifi_state_table->sta_dest_ap_connected);
 
-    for(int i = 0; i < WIFI_SETUP_WIFI_CONFIG_AP_MAX_CONN; i++)
+    ap_list_client_connected_t *element, *temp;
+
+    // Duyệt và xóa từng phần tử
+    LL_FOREACH_SAFE(s_wifi_state_table->ap_list_client_connected, element, temp)  // copy element->next and save in 'temp'
+                                                              // then using temp to continue browse next element
     {
-        if(s_wifi_state_table->ap_list_sta_connected[i] != NULL) free(s_wifi_state_table->ap_list_sta_connected[i]);
+        LL_DELETE(s_wifi_state_table->ap_list_client_connected, element);      // delete element
+        free(element);                                     // Free
+        // element = NULL
     }
 
     free(s_wifi_state_table);
@@ -1157,3 +1202,20 @@ _peripherals_err_t wifi_setup_de_init_wifi_driver()
 
 // these behind extend case can auto clear after reset chip
 
+
+
+
+
+
+
+
+
+
+// =================================== SUB FUNCTION                ===================================
+
+// support function
+// compare client id, support event task handler check when disconnect with client
+static int compare_client_id(ap_list_client_connected_t* a, wifi_event_ap_stadisconnected_t* b) 
+{
+    return (a->client_connected_inf).aid - b->aid;
+}

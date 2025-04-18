@@ -9,6 +9,7 @@ idf_component_register(
     "wifi_setup_handle.c"
     INCLUDE_DIRS
     "."
+    "${PROJECT_DIR}/components/_reference_libs/" # include reference libraries
     REQUIRES
     nvs_flash
     )

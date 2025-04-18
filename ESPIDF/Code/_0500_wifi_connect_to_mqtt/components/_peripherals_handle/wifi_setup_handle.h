@@ -42,6 +42,9 @@
 //user
 #include "_peripherals_err.h"
 
+// reference
+#include "utlist.h" // linked list
+
 // ap mode ip
 #define WIFI_SETUP_AP_MODE_IP_ADDR         ( (192 << 24) | (168 << 16) | (1<<8)   | (1) )
 #define WIFI_SETUP_AP_MODE_NET_MASK        ( (255 << 24) | (255 << 16) | (255<<8) | (0) ) // C class network by classful
@@ -91,6 +94,13 @@
 #define WIFI_SETUP_WIFI_ACTIVE_SCAN_MIN_TIME_MS (100) // limit speed send probe
 #define WIFI_SETUP_WIFI_ACTIVE_SCAN_MAX_TIME_MS (200) // maximum time wait feedback. esp32 limit 1500ms
 #define WIFI_SETUP_WIFI_SCAN_BLOCK     (false) // wifi scan stop scan when be requested
+
+
+typedef struct 
+{
+    wifi_event_ap_staconnected_t client_connected_inf;
+    struct ap_list_client_connected_t* next; // << must write "next" because 'utlist.h' require it to handle linked list
+} ap_list_client_connected_t;
 
 
 // struct save state of wifi
@@ -199,10 +209,11 @@ typedef struct
     uint32_t wifi_ip_state;
 
     // struct pointer to data
-    wifi_event_ap_staconnected_t* ap_list_sta_connected[WIFI_SETUP_WIFI_CONFIG_AP_MAX_CONN]; 
-            // pointer to NULL if no connect, or pointer to
-            // struct pointer to copy value feedback of WIFI_EVENT_AP_STACONNECTED event
-            // if a pointer exist when WIFI_EVENT_AP_STADISCONNECTED raise, it will free and point to NULL
+    // linked list manage client connected to access point mode
+    ap_list_client_connected_t* ap_list_client_connected;
+            // using linked list to manage new sta connected
+            // copy value feedback of WIFI_EVENT_AP_STACONNECTED event and push to linked list
+            // if a pointer exist when WIFI_EVENT_AP_STADISCONNECTED raise, it will free / clear out of list
     wifi_event_sta_connected_t* sta_dest_ap_connected;
             // default NULL if not connect. 
             // copy value feedback of WIFI_EVENT_STA_CONNECTED event
