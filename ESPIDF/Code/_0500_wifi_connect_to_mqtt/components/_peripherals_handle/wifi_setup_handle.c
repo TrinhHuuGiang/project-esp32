@@ -368,8 +368,17 @@ void wifi_setup_wifi_event_handler
                 // + clear sta_connecting
                 CLR_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_CONNECTING);
 
-                // get inform network
+                // get inform network (only use for diagnose network connected)
                 s_wifi_state_table->sta_dest_ap_connected = calloc(1, sizeof(wifi_event_sta_connected_t));
+
+                // if calloc failed, ignore it
+                if(s_wifi_state_table->sta_dest_ap_connected == NULL)
+                {
+                    #if CONFIG_DEBUG_ENABLE != 0
+                    send_peripheral_err_location(WIFI_SETUP_STA_ADD_AP_INF_FAILED, __FILE__, __LINE__, "calloc failed for sta_dest_ap_connected");
+                    #endif
+                    break;
+                }
 
                 memcpy(s_wifi_state_table->sta_dest_ap_connected, event_data, sizeof(wifi_event_sta_connected_t));
 
@@ -384,6 +393,14 @@ void wifi_setup_wifi_event_handler
                 CLR_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_DISCONNECTING);
 
                 // clear net connected
+                if(s_wifi_state_table->sta_dest_ap_connected == NULL)
+                {
+                    #if CONFIG_DEBUG_ENABLE != 0
+                    send_peripheral_err_location(WIFI_SETUP_STA_REMOVE_AP_INF_FAILED, __FILE__, __LINE__, "No find access point inform");
+                    #endif
+                    break;
+                }
+                
                 free(s_wifi_state_table->sta_dest_ap_connected);
                 
                 s_wifi_state_table->sta_dest_ap_connected = NULL;
@@ -430,6 +447,15 @@ void wifi_setup_wifi_event_handler
                 // + add new ap to list
                 ap_list_client_connected_t* new_client = calloc(1, sizeof(ap_list_client_connected_t));
 
+                // if calloc failed, ignore it
+                if(new_client == NULL)
+                {
+                    #if CONFIG_DEBUG_ENABLE != 0
+                    send_peripheral_err_location(WIFI_SETUP_AP_ADD_CLIENT_INF_TO_LIST_FAILED, __FILE__, __LINE__, "calloc failed for new_client");
+                    #endif
+                    break;
+                }
+
                 memcpy(&(new_client->client_connected_inf), event_data, sizeof(wifi_event_ap_staconnected_t));
 
                 LL_PREPEND(s_wifi_state_table->ap_list_client_connected,new_client);
@@ -451,6 +477,15 @@ void wifi_setup_wifi_event_handler
                 // find node to delete
                 LL_SEARCH(s_wifi_state_table->ap_list_client_connected, rm_client, 
                     (wifi_event_ap_stadisconnected_t*)event_data, compare_client_id);
+                
+                // if remove expect no appear in client list so ignore
+                if(rm_client == NULL)
+                {
+                    #if CONFIG_DEBUG_ENABLE != 0
+                    send_peripheral_err_location(WIFI_SETUP_AP_REMOVE_CLIENT_INF_TO_LIST_FAILED, __FILE__, __LINE__, "client disappeared form connected list");
+                    #endif
+                    break;
+                }
 
                 // delete node
                 LL_DELETE(s_wifi_state_table->ap_list_client_connected, rm_client);

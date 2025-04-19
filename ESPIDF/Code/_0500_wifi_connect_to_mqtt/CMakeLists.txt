@@ -9,7 +9,8 @@ set(EXTRA_COMPONENT_DIRS
     "${CMAKE_SOURCE_DIR}/components/io_device")
 
 
-
+set(EXTRA_COMPONENT_DIRS
+    "${CMAKE_SOURCE_DIR}/components/net_protocol")
 
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)

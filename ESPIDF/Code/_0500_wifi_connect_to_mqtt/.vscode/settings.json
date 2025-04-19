@@ -2,6 +2,9 @@
     "files.associations": {
         "nvs_flash.h": "c",
         "*.ipp": "c",
-        "*.inc": "c"
+        "*.inc": "c",
+        "http_server_handle.h": "c",
+        "esp_http_server.h": "c",
+        "_peripherals_err.h": "c"
     }
 }
