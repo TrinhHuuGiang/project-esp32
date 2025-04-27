@@ -8,6 +8,7 @@
 // This library: handle general scenarios of AP, STA, STA+AP mode step by step
 
 
+
 #ifndef _WIFI_SETUP_HANDLE_H_
 #define _WIFI_SETUP_HANDLE_H_
 
@@ -41,6 +42,7 @@
 
 //user
 #include "_peripherals_err.h"
+#include "__task_sync.h"
 
 // reference
 #include "utlist.h" // linked list
@@ -104,22 +106,15 @@ typedef struct
 
 
 // struct save state of wifi
-// when handle wifi, sometime race condition can be reach
-// manage state of wifi by this struct more suitable than statemachine
-// any query this state struct will accept by specicals function for sure not race condition
-// this struct auto alloc when call 'wifi_setup_start_wifi_driver();' and init all field is 0
-// and de alloc when call "wifi_setup_stop_wifi_driver();"
-
+// when handle wifi, sometime race condition can be reach, so:
+// + manage state of wifi by this struct suitable like a statemachine
+// + any query this state struct will accept by mutex for sure not race condition
+// #include "__task_sync.h" to using sync tools
 typedef struct
 {
     // instance handler using register event task
     esp_event_handler_instance_t wifi_handler;
     esp_event_handler_instance_t ip_handler;
-
-    // Mutex to protect state from race conditions,
-    // since any event task can come at random time.
-    // Helps ensure event handling is serialized.
-    SemaphoreHandle_t wifi_state_mutex;  // sure that any event task call the wifi event handle will queuing
 
     // some harm action can avoid by flag:
     // + sta scan + sta connect
@@ -218,7 +213,9 @@ typedef struct
             // default NULL if not connect. 
             // copy value feedback of WIFI_EVENT_STA_CONNECTED event
             // it will free and point to NULL if WIFI_EVENT_STA_DISCONNECTED
-
+        
+    // number service are using wifi like (http, mqtt, ...)
+    uint8_t wifi_service_num;  
     
 } struct_wifi_state_t;
 
@@ -229,27 +226,88 @@ typedef struct
 
 
 // reduce using RAM, using register 32 bit to save state flags
-#define WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_STARTED         (0)
-#define WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_STARTING        (1)
-#define WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_CONNECTED       (2)
-#define WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_CONNECTING      (3)
-#define WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_DISCONNECTING   (4)
-#define WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_SCANNING        (5)
-#define WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_SCANNED         (6)
-#define WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_GOT_IP          (7)
-#define WIFI_SETUP_WIFI_IP_FLAG_STATE_AP_STARTED          (8)
-#define WIFI_SETUP_WIFI_IP_FLAG_STATE_AP_STARTING         (9)
-#define WIFI_SETUP_WIFI_IP_FLAG_STATE_DRIVER_STOPPING     (10)
+typedef enum
+{
+    WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_STARTED = 0,   // started / stopped
+    WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_STARTING,      // starting
+    WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_CONNECTED ,    // connected / disconnected
+    WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_CONNECTING ,   // connecting
+
+    WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_SCANNING,      // scanning
+    WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_SCANNED,       // scanned/ empty scan
+    
+    WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_GOT_IP,        // << this state maybe ignore, if wanna check ip is received
+    
+    WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_DISCONNECTING , // << This is quite a risky state 
+                                                      // because it can be affected by unstable
+                                                      // connection environment factors
+                                                      // Since it can't be controlled, we'll give the 
+                                                      // disconnect function a back-off state mechanism 
+                                                      // if we can't call disconnect function
+    
+    WIFI_SETUP_WIFI_IP_FLAG_STATE_AP_STARTED ,       // started/ stopped
+    WIFI_SETUP_WIFI_IP_FLAG_STATE_AP_STARTING,       // starting
+    
+    WIFI_SETUP_WIFI_IP_FLAG_STATE_DRIVER_STOPPING    // stopping
+} wifi_flag_state_t;
 
 
 
 
 
-// mutex:
-// + xSemaphoreCreateMutex()
-// +  xSemaphoreTake()
-// + xSemaphoreGive()
-// +  vSemaphoreDelete()
+
+
+
+/**
+ * **********************************************************
+ * Quick Functions
+ * **********************************************************
+ */
+
+
+// =================================== Wifi Manager Driver         ===================================
+// =================================== Only for APSTA mode         ===================================
+// only for APSTA mode because we have many type of service on Application layer
+// and esp32 can be client or server
+// APSTA mode easy to handle these situation
+
+// we need a driver for manage high level service (application layer)
+_peripherals_err_t wifi_setup_start_apsta_mode_manager_driver();
+
+// when register, if wifi driver in state of, manager will feedback REFUSE, so we can wait a minute and re register
+// if manager feedback ok , we will not allowed to re call this function before we un register service 
+_peripherals_err_t wifi_setup_register_a_service_with_apsta_mode_manager();
+
+// just un notify manager we want un register service and manager will countdown service is allowed :v
+// manager only know some service is running and number of service is allowed
+_peripherals_err_t wifi_setup_un_register_a_service_with_apsta_mode_manager();
+
+// this function will feedback REFUSE if someone service is running not jet unregister
+// wait a minute and try recall if all service disconnected
+_peripherals_err_t wifi_setup_stop_apsta_mode_manager_driver();
+
+
+// Note using wifi manager:
+// - Before use: you must config wifi, wifi driver from step 0 to step 1
+
+// - Then call wifi_setup_start_apsta_mode_manager_driver(); to manage driver from step 2
+// + This function frequency check wifi connect state and always try reconnect if it can
+
+// - When a service using wifi, it should call wifi_setup_register_a_service_with_apsta_mode_manager();
+// + This funtion count up with manager and manager will no accept to stop wifi
+
+// Warning:
+// + Only using scan/ list scan function on step 3.5 when using wifi manager
+// + If want to modify wifi information at step 2.5, sure that wifi manager was stopped (step below)
+
+// - After use wifi: call wifi_setup_stop_apsta_mode_manager_driver(); to disconnect and stop wifi driver
+// + This action will be blocked if any wifi service is running
+// + The service is running always call wifi_setup_un_register_a_service_with_apsta_mode_manager() if yous want stop wifi
+
+// - Last, we de init wifi driver was setup if no longer use wifi
+
+
+
 
 /**
  * **********************************************************
@@ -295,11 +353,6 @@ _peripherals_err_t wifi_setup_init_wifi_driver();
 
 // =================================== 2. Configuration phase      ===================================
 // =================================== Register wifi event handler ===================================
-
-// Define a event handler, using react when even task call
-// Register auto by 'wifi_setup_regist_receive_event_task()' below
-void wifi_setup_wifi_event_handler
-(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data);
 
 // Register 'wifi_setup_wifi_event_handler()' into event loop to check wifi status. 
 _peripherals_err_t wifi_setup_regist_receive_event_task();
@@ -440,6 +493,8 @@ _peripherals_err_t wifi_setup_connect_to_access_point(uint8_t* busy);
 
 
 // disconnect only for STA in (STA/ STA+AP ) 
+// note we can ignore return of this state
+// or log into terminal disconnect unexpected
 _peripherals_err_t wifi_setup_disconnect_wifi(uint8_t* busy);
 
 

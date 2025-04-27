@@ -11,5 +11,4 @@ idf_component_register(
     "."
     "${PROJECT_DIR}/components/_reference_libs/" # include reference libraries
     REQUIRES
-    nvs_flash
-    )
+    nvs_flash)

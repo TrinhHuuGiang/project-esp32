@@ -5,7 +5,7 @@
  */
 #include "main.h"
 #define MAIN_TAG "MAIN_LOOP"
-
+#define WIFI_DRV "WIFI_DRIVER_LOOP"
 
 // AP info
 #define WIFI_AP_SSID "Hello ESP32"
@@ -15,15 +15,22 @@
 
 
 // STA info
-#define WIFI_SCAN_WIFI_AROUND_BUTTON (13)
+
+
+// Wifi driver
+#define WIFI_DRV_RECHECK_NETWORK_CYCLE    (5000) // check network connect after 5s
+
 
 /**
  * **********************************************************
  * Variables
  * **********************************************************
  */
+// create led handle task
+static int return_all_flag = 0; // <<- notify father task and all task using this flag is some thing wrong happened, clean and return to retart for safe
+
+
 static uint8_t s_wifi_reset_factory_holding = 1; // pull up default, low is holding button
-static uint8_t s_wifi_scan_wifi_holding = 1;     // pull up default, low is holding button
 
 /**
  * **********************************************************
@@ -38,12 +45,23 @@ static int init_special_wifi_button();
 static void reset_wifi_to_factory_handler(void* arg);
 
 
-// handle hold button and scan wifi around, then print to serial
-static void scan_wifi_handler(void* arg);
+/**
+ * **********************************************************
+ * Drivers
+ * **********************************************************
+ */
+
+// driver manage state wifi when start wifi driver
+static void main_driver_control_wifi_apsta();
+
+// driver manage http server when start wifi driver
+static void main_driver_control_http_server();
+
+// driver manage mqtt client
 
 /**
  * **********************************************************
- * Codes
+ * Main Codes
  * **********************************************************
  */
 
@@ -73,26 +91,6 @@ void app_main(void)
     if(wifi_setup_set_wifi_country()) return;
 
     ESP_LOGI(MAIN_TAG, "done setup mode/country");
-
-    // Wifi driver start
-    while(wifi_busy != WIFI_SETUP_COMMAND_EXECUTED)
-    {
-        vTaskDelay(pdMS_TO_TICKS(100)); // wait 100ms
-
-        if(wifi_setup_start_wifi_driver(&wifi_busy)) return;
-    }
-
-    ESP_LOGI(MAIN_TAG, "done start wifi driver");
-
-    // // try connect to access point
-    // wifi_busy = WIFI_SETUP_COMMAND_REFUSED;
-    // while(wifi_busy != WIFI_SETUP_COMMAND_EXECUTED)
-    // {
-    //     vTaskDelay(pdMS_TO_TICKS(100)); // wait 100ms
-
-    //     if(wifi_setup_connect_to_access_point(&wifi_busy)) return;
-    // }
-
     
 
     // continue program while wifi driver handle event
@@ -100,15 +98,10 @@ void app_main(void)
     // init button reset wifi
     if(init_special_wifi_button()) return;
 
-
-    // create led handle task
-    int ret = 0; // <<- notify father task and all task using this flag is some thing wrong happened, clean and return to retart for safe
-
-    xTaskCreate(reset_wifi_to_factory_handler, "Wifi factory handler task", 2048, &ret, 5, NULL);
-    xTaskCreate(scan_wifi_handler, "Wifi scan handler task", 2048, &ret, 5, NULL);
+    xTaskCreate(reset_wifi_to_factory_handler, "Wifi factory handler task", 2048, NULL, 5, NULL);
     
 
-    while(!ret)
+    while(!return_all_flag)
     {
         ESP_LOGW("Hello", "1s");
 
@@ -119,6 +112,14 @@ void app_main(void)
     return;
 }
 
+
+
+/**
+ * **********************************************************
+ * Codes
+ * **********************************************************
+ */
+
 // init button
 static int init_special_wifi_button()
 {
@@ -126,34 +127,32 @@ static int init_special_wifi_button()
     if(gpio_setup_install_isr_service_for_gpio_system()) return 1;
 
     if(gpio_setup_reset_pin_to_origin(WIFI_RESET_TO_DEFAULT_BUTTON)) return 1;
-    if(gpio_setup_reset_pin_to_origin(WIFI_SCAN_WIFI_AROUND_BUTTON)) return 1;
 
     // gpio in
     if(gpio_setup_io_direction(WIFI_RESET_TO_DEFAULT_BUTTON,GPIO_MODE_INPUT)) return 1;
-    if(gpio_setup_io_direction(WIFI_SCAN_WIFI_AROUND_BUTTON,GPIO_MODE_INPUT)) return 1;
 
     // set pull
     if(gpio_setup_pull_res(WIFI_RESET_TO_DEFAULT_BUTTON,GPIO_PULLUP_ONLY)) return 1;
-    if(gpio_setup_pull_res(WIFI_SCAN_WIFI_AROUND_BUTTON,GPIO_PULLUP_ONLY)) return 1;
 
 
     return 0;
 }
 
 
+
+
+
 // handle hold button and factory reset wifi
 static void reset_wifi_to_factory_handler(void* arg)
 {
-    int* ret = (int*)arg;
-
     int count_temp = 5;
 
-    while(! (*ret))
+    while(!return_all_flag)
     {
         // first check
         if(gpio_setup_get_logic_level(WIFI_RESET_TO_DEFAULT_BUTTON, &s_wifi_reset_factory_holding)) 
         {
-            (*ret) = 1;
+            return_all_flag = 1;
             break;
         }
 
@@ -189,7 +188,7 @@ static void reset_wifi_to_factory_handler(void* arg)
             // recheck
             if(gpio_setup_get_logic_level(WIFI_RESET_TO_DEFAULT_BUTTON, &s_wifi_reset_factory_holding)) 
             {
-                (*ret) = 1;
+                return_all_flag = 1;
                 break;
             }
         }
@@ -205,116 +204,46 @@ static void reset_wifi_to_factory_handler(void* arg)
 }
 
 
-// handle hold button and scan wifi around, then print to serial
-static void scan_wifi_handler(void* arg)
+
+
+
+
+// driver control apsta mode
+static void main_driver_control_wifi_apsta(void* arg)
 {
-    int* ret = (int*)arg;
+    int wifi_busy = WIFI_SETUP_COMMAND_REFUSED;
 
-    int count_temp = 3;
-
-    while(! (*ret))
+    // Wifi driver start
+    while(!return_all_flag)
     {
-        // first check
-        if(gpio_setup_get_logic_level(WIFI_SCAN_WIFI_AROUND_BUTTON, &s_wifi_scan_wifi_holding)) 
+        ESP_LOGW(WIFI_DRV, "Checking wifi ...");
+
+        // [apsta] try starting / check started wifi driver
+        wifi_busy = WIFI_SETUP_COMMAND_EXECUTED;
+        while(wifi_busy == WIFI_SETUP_COMMAND_EXECUTED)
         {
-            (*ret) = 1;
-            break;
+            if(wifi_setup_start_wifi_driver(&wifi_busy)) return;  // if wifi stopped -> try start it
         }
 
-        while(!s_wifi_scan_wifi_holding) // pull up : if logic 0 -> holding, 1 is idle
+        ESP_LOGI(WIFI_DRV, "Starting/started APSTA driver");
+
+        // [sta] try connecting / connected
+        wifi_busy = WIFI_SETUP_COMMAND_EXECUTED;
+        while(wifi_busy != WIFI_SETUP_COMMAND_EXECUTED) 
         {
-            ESP_LOGE(MAIN_TAG, "Prepare scan wifi around you [%d]",count_temp);
-
-            if(!count_temp) // ok start scan
-            {
-                uint8_t busy_state = WIFI_SETUP_COMMAND_REFUSED;
-                uint16_t number_wifi = 0;
-                wifi_ap_record_t *ap_records = NULL;
-
-                // try scan
-                while(busy_state == WIFI_SETUP_COMMAND_REFUSED)
-                {
-                    if(wifi_setup_start_scan_wifi(&busy_state))
-                    {
-                        (*ret) = 1;
-                        break;
-                    }
-                }
-
-                // try read
-                busy_state = WIFI_SETUP_COMMAND_REFUSED;
-                while(busy_state == WIFI_SETUP_COMMAND_REFUSED)
-                {
-                    ESP_LOGI("Scan wifi", "SCANNING...");
-                    vTaskDelay(pdMS_TO_TICKS(1000)); // wait before check , wifi need a second to scan
-                    ESP_LOGI("Scan wifi", "SCANNING.");
-
-                    if(wifi_setup_get_wifi_list_scanned(&busy_state, &number_wifi, &ap_records))
-                    {
-                        (*ret) = 1;
-                        break;
-                    }
-                }
-                
-                // try printf
-                ESP_LOGI("Scan wifi", "CHECKING LIST SCANNED");
-                if(number_wifi > 0)
-                {
-                    for(uint16_t i = 0; i < number_wifi ; i++)
-                    {
-                        fprintf(stderr,"[%u] SSID: %s\n    MAC: ", i, ap_records[i].ssid);
-                        for(int j = 0; j< sizeof(ap_records[i].bssid); j++)
-                        {
-                            if(j!=0)
-                            {
-                                fprintf(stderr,":");
-                            }
-                            fprintf(stderr,"%02X", ap_records[i].bssid[j]);
-                        }
-                        fprintf(stderr,"\n");
-                    }
-                    
-                    // free after use
-                    free(ap_records);
-                    ap_records = NULL;
-                }
-                else
-                {
-                    ESP_LOGW("Scan wifi", "No AP a round you");
-                }
-                
-            }
-
-            // count down
-            count_temp --;
-
-
-            // hanging if scan done
-            // scan done, release button
-            if(count_temp < 0)
-            {
-                ESP_LOGE(MAIN_TAG, "Please release scan button");
-                count_temp = -1;
-            }
-
-            // delay
-            
-            vTaskDelay(pdMS_TO_TICKS(1000));// 1s
-
-            // recheck
-            if(gpio_setup_get_logic_level(WIFI_SCAN_WIFI_AROUND_BUTTON, &s_wifi_scan_wifi_holding)) 
-            {
-                (*ret) = 1;
-                break;
-            }
+            if(wifi_setup_connect_to_access_point(&wifi_busy)) return; // if wifi sta no access to AP -> try connect it
         }
 
-        // reset count
-        count_temp = 3;
-
-        //delay
-        vTaskDelay(pdMS_TO_TICKS(200));
+        ESP_LOGI(WIFI_DRV, "Connecting/connected STA to AP");
+        
+        // sleep task
+        vTaskDelay(pdMS_TO_TICKS(WIFI_DRV_RECHECK_NETWORK_CYCLE)); // sleep 2s then continue check
     }
+
+    // Try stop wifi driver
+
+    // 1. 
+
     // exit
     vTaskDelete(NULL);
 }

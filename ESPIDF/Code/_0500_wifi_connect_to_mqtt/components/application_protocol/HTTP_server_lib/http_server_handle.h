@@ -56,7 +56,9 @@ typedef esp_err_t (*http_uri_function_handler_t)(httpd_req_t *r); // function po
 _peripherals_err_t http_server_handle_start_server();
 
 // http linked list (uri - function handler)
-_peripherals_err_t http_server_handle_append_uri_struct_to_list(httpd_uri_t* uri_struct);
+// add your inform uri-method-function-context (data included)- context size by byte
+_peripherals_err_t http_server_handle_append_uri_struct_to_list(const char* uri, httpd_method_t method, 
+    http_uri_function_handler_t function_handler, void* user_ctx, int context_size_byte);
 
 // http server register list uri to handler
 _peripherals_err_t http_server_handle_regist_uri_list_to_handler();

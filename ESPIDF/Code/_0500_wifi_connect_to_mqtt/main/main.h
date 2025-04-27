@@ -28,7 +28,7 @@
 
 #include "i2c_ssd1306.h"
 #include "spi_sd_mount_to_fs.h"
-
+#include "gpio_74hc165.h"
 
 // debug
 #if CONFIG_DEBUG_ENABLE !=0

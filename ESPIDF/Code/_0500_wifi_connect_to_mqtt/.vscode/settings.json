@@ -5,6 +5,13 @@
         "*.inc": "c",
         "http_server_handle.h": "c",
         "esp_http_server.h": "c",
-        "_peripherals_err.h": "c"
+        "_peripherals_err.h": "c",
+        "esp_event.h": "c",
+        "mqtt_client.h": "c",
+        "http_parser.h": "c",
+        "mqtt_supported_features.h": "c",
+        "mqtt_outbox.h": "c",
+        "platform.h": "c",
+        "mqtt_msg.h": "c"
     }
 }

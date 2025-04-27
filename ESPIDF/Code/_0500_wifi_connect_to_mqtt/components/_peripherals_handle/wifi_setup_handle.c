@@ -10,6 +10,8 @@
  * Variables
  * **********************************************************
  */
+extern __task_sync_t* g_task_sync_tools; // get sync tools 
+
 static struct_wifi_state_t* s_wifi_state_table = NULL;
 
  /**
@@ -17,6 +19,10 @@ static struct_wifi_state_t* s_wifi_state_table = NULL;
  * Prototype
  * **********************************************************
  */
+// wifi even handler
+static void wifi_setup_wifi_event_handler
+(void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data);
+
 // compare client id, support event task handler check when disconnect with client
 static int compare_client_id(ap_list_client_connected_t* a, wifi_event_ap_stadisconnected_t* b);
 
@@ -42,7 +48,7 @@ _peripherals_err_t wifi_setup_init_nvs_flash()
         #endif
         return WIFI_SETUP_INIT_NVS_FLASH_FAILED;
     }
-
+    
     return PERIPH_OK;
 }
 
@@ -184,154 +190,23 @@ _peripherals_err_t wifi_setup_init_wifi_driver()
 // =================================== 2. Configuration phase      ===================================
 // =================================== =========================== ===================================
 
-/*
-
-// struct save state of wifi
-// when handle wifi, sometime race condition can be reach
-// manage state of wifi by this struct more suitable than statemachine
-// any query this state struct will accept by specicals function for sure not race condition
-// this struct auto alloc when call 'wifi_setup_start_wifi_driver();' and init all field is 0
-// and de alloc when call "wifi_setup_stop_wifi_driver();"
-
-typedef struct
-{
-    // instance handler using register event task
-    esp_event_handler_instance_t wifi_handler;
-    esp_event_handler_instance_t ip_handler;
-
-    // Mutex to protect state from race conditions,
-    // since any event task can come at random time.
-    // Helps ensure event handling is serialized.
-    SemaphoreHandle_t wifi_state_mutex;  // sure that any event task call the wifi event handle will queuing
-
-    // some harm action can avoid by flag:
-    // + sta scan + sta connect
-    // + sta scan + get list ap
-    // + multiple calling function at the same time
-    // + avoid call special function when wrong state:
-        // no connect to ap when connecting or connected or scanning
-        // no scan ap when scanning or scanned or connecting
-        // no list ap when scanning or not scanned
-        // no start ap driver when ap starting or ap started
-
-    // state / using theses 'flags' instead of 'enum', because multiple states can occur simultaneously
-    // can using a uint32_t and define macro to save RAM but write down like this easy to implement 
-    
-    // uint8_t sta_started;    // - Raised by WIFI_EVENT_STA_START, cleared by WIFI_EVENT_STA_STOP
-                            // - When raised: clear sta_starting
-                            // - When cleared: clear driver_stopping
-                            
-                            // + notify for upper layer - 'Application' - access point mode is start / stop 
-
-    // uint8_t sta_starting;   // - Raise by : wifi_setup_start_wifi_driver() at step 3
-                            // - Note: check sta_start before raise
-
-                            // + check to avoid call wifi_setup_start_wifi_driver() multiple
-
-    // uint8_t sta_connected;  // - Raised by WIFI_EVENT_STA_CONNECTED, cleared by WIFI_EVENT_STA_DISCONNECTED
-                            // - When raised: clear sta_connecting
-
-                            // + notify for upper layer - 'Application' - station mode is connected or not to access point 
-
-    // uint8_t sta_connecting; // - Raise by wifi_setup_connect_to_access_point() step 4
-                            // - Note: check sta_connecting, sta_connect and sta_scanning before raise                   
-
-                            // + check to avoid call wifi_setup_connect_to_access_point() multiple
-                            // + notify for ' wifi_setup_start_scan_wifi()' 
-                            
-    // uint8_t sta_disconnecting;
-                            // - Raise by : wifi_setup_disconnect_wifi() at step 8
-                            // - Note: check sta_disconnecting and sta_connected
-
-                            // + check to avoide call wifi_setup_disconnect_wifi() multiple
-
-    // uint8_t sta_scanning;   // - Raise by : wifi_setup_start_scan_wifi() at step 3.5
-                            // - Note: check sta_connecting, sta_connecting and sta_scanned before
-
-                            // + check to avoid call wifi_setup_start_scan_wifi() multiple
-                            // + notify for 'wifi_setup_connect_to_access_point()' at step 4 
-                            // + notify for ' wifi_setup_get_wifi_list_scanned() ' scanning, can't read
-
-    
-    // uint8_t sta_scanned;    // - Raise by WIFI_EVENT_SCAN_DONE
-                            // - When raised: clear sta_scanning
-
-                            // + notify for 'wifi_setup_start_scan_wifi()' should not start to avoid memory leak when not read
-                            // + notify for 'wifi_setup_get_wifi_list_scanned()' at step 3,5 can read
-
-                            // - Only clear by 'wifi_setup_get_wifi_list_scanned()' if can read
-    
-    // uint8_t sta_got_ip;     // - Raise when IP_EVENT_STA_GOT_IP and clear when IP_EVENT_STA_LOST_IP
-
-                            // + notify for upper layer - 'Application' - IP is available or loss
-
-    // uint8_t ap_started;     // - Raise when WIFI_EVENT_AP_START and clear when WIFI_EVENT_AP_STOP
-                            // - When raised: clear ap_starting
-
-                            // + notify for upper layer - 'Application' - access point mode is start / stop
-
-    // uint8_t ap_starting;    // - Raise by : wifi_setup_start_wifi_driver() at step 3
-                            // - Note: check sta_start before raise
-
-                            // + check to avoid call wifi_setup_start_wifi_driver() multiple
-    
-    uint8_t ap_number_sta_connected;
-                            // - This state count up when WIFI_EVENT_AP_STACONNECTED
-                            // - count down when WIFI_EVENT_AP_STADISCONNECTED
-
-                            // + notify for upper layer - 'Application' - some client is connected/ disconnect to access point
-                            // + handle upper layer sockets
-
-    // uint8_t driver_stopping;
-                            // - Raise by : wifi_setup_stop_wifi_driver() at step 8
-                            // - Note: check driver_stopping, sta_started before raise
-
-                            // + check to avoid call wifi_setup_stop_wifi_driver() multiple
-    
-    // All flag behind package in one register 32 bit
-    uint32_t wifi_ip_state;
-
-    // struct pointer to data
-    wifi_event_ap_staconnected_t* ap_list_sta_connected[WIFI_SETUP_WIFI_CONFIG_AP_MAX_CONN]; 
-            // pointer to NULL if no connect, or pointer to
-            // struct pointer to copy value feedback of WIFI_EVENT_AP_STACONNECTED event
-            // if a pointer exist when WIFI_EVENT_AP_STADISCONNECTED raise, it will free and point to NULL
-    wifi_event_sta_connected_t* sta_dest_ap_connected;
-            // default NULL if not connect. 
-            // copy value feedback of WIFI_EVENT_STA_CONNECTED event
-            // it will free and point to NULL if WIFI_EVENT_STA_DISCONNECTED
-
-    
-} struct_wifi_state_t;
-
-// some function join synchronous will be feedback by REFUSED or EXECUTED
-// user can know state machine is busy to handle input command or can handle instantly
-#define WIFI_SETUP_COMMAND_REFUSED  (0)
-#define WIFI_SETUP_COMMAND_EXECUTED (1)
-
-
-// reduce using RAM, using register 32 bit to save state flags
-#define WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_STARTED         (0)
-#define WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_STARTING        (1)
-#define WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_CONNECTED       (2)
-#define WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_CONNECTING      (3)
-#define WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_DISCONNECTING   (4)
-#define WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_SCANNING        (5)
-#define WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_SCANNED         (6)
-#define WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_GOT_IP          (7)
-#define WIFI_SETUP_WIFI_IP_FLAG_STATE_AP_STARTED          (8)
-#define WIFI_SETUP_WIFI_IP_FLAG_STATE_AP_STARTING         (9)
-#define WIFI_SETUP_WIFI_IP_FLAG_STATE_DRIVER_STOPPING     (10)
-
-
-*/
-
 // wifi even handler
-void wifi_setup_wifi_event_handler
+static void wifi_setup_wifi_event_handler
 (void *event_handler_arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
 {
     // block all other task
-    xSemaphoreTake(s_wifi_state_table->wifi_state_mutex, portMAX_DELAY);
+    xSemaphoreTake(g_task_sync_tools->wifi_state_mutex, portMAX_DELAY);
+
+    // check manager null
+    // dont care all event because wifi not start
+    // because each event will callback this handler in new task
+    // each task may be blocked and queuing by wifi mutex
+    // if we call "wifi_setup_unregister_event_task" the driver , event access NULL pointer can crash program
+    if(s_wifi_state_table == NULL)
+    {
+        xSemaphoreGive(g_task_sync_tools->wifi_state_mutex);
+        return;
+    }
 
     // event from wifi driver
     if(event_base == WIFI_EVENT)
@@ -388,6 +263,11 @@ void wifi_setup_wifi_event_handler
                 
                 // + clear sta_connected
                 CLR_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_CONNECTED);
+
+                // + clear sta_connecting
+                // when connect failed, WIFI_EVENT_STA_CONNECTED event will not comming
+                // WIFI_EVENT_STA_DISCONNECTED must clear if want continue using STA connect function
+                CLR_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_CONNECTING);
 
                 // + clear sta_disconnecting
                 CLR_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_DISCONNECTING);
@@ -532,7 +412,7 @@ void wifi_setup_wifi_event_handler
     // else don't care
 
     // unlock after done task
-    xSemaphoreGive(s_wifi_state_table->wifi_state_mutex);
+    xSemaphoreGive(g_task_sync_tools->wifi_state_mutex);
 
 
 }
@@ -562,21 +442,6 @@ _peripherals_err_t wifi_setup_regist_receive_event_task()
         #endif
         return WIFI_SETUP_WIFI_STATE_TABLE_INIT_FAILED;
     }
-
-    // init default mutex key
-    s_wifi_state_table->wifi_state_mutex = xSemaphoreCreateMutex();
-
-    if(s_wifi_state_table->wifi_state_mutex == NULL)
-    {
-        free(s_wifi_state_table);
-        s_wifi_state_table = NULL;
-
-        #if CONFIG_DEBUG_ENABLE !=0
-        send_peripheral_err_location(WIFI_SETUP_WIFI_STATE_TABLE_CREATE_MUTEX_FAILED, __FILE__, __LINE__, "Wifi state mutex failed");
-        #endif
-        return WIFI_SETUP_WIFI_STATE_TABLE_CREATE_MUTEX_FAILED;
-    }
-
 
     // regist state handler with default event loop
     esp_err_t ret1 = esp_event_handler_instance_register(
@@ -782,16 +647,16 @@ _peripherals_err_t wifi_setup_start_wifi_driver(uint8_t* busy)
 {
     // check state flags
     // block all other task
-    xSemaphoreTake(s_wifi_state_table->wifi_state_mutex, portMAX_DELAY);   
+    xSemaphoreTake(g_task_sync_tools->wifi_state_mutex, portMAX_DELAY);   
 
-    // if sta_started return  WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_STARTED
-    // if sta_starting return WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_STARTING
-    // if ap_started return   WIFI_SETUP_WIFI_IP_FLAG_STATE_AP_STARTED
-    // if ap_starting return  WIFI_SETUP_WIFI_IP_FLAG_STATE_AP_STARTING
-    if( GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_STARTED)  ||
-        GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_STARTING) ||
-        GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_AP_STARTED)   ||
-        GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_AP_STARTING) )
+    // check state
+    if( GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_STARTED)     ||  // sta driver stared << this still check if wifi sta no stopped before
+        GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_STARTING)    ||  // sta driver starting
+
+        GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_AP_STARTED)      ||  // ap driver started  << this still check if wifi sta no stopped before
+        GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_AP_STARTING)     ||  // ap driver starting
+
+        GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_DRIVER_STOPPING))    // driver is stopping
     {
         #if CONFIG_DEBUG_ENABLE !=0
         send_peripheral_err_location(PERIPH_OK, __FILE__, __LINE__, "Wifi STA/AP  starting/started");
@@ -815,7 +680,7 @@ _peripherals_err_t wifi_setup_start_wifi_driver(uint8_t* busy)
         send_peripheral_err_location(WIFI_SETUP_WIFI_START_FAILED, __FILE__, __LINE__, esp_err_to_name(ret));
         #endif
 
-        xSemaphoreGive(s_wifi_state_table->wifi_state_mutex);
+        xSemaphoreGive(g_task_sync_tools->wifi_state_mutex);
         return WIFI_SETUP_WIFI_START_FAILED;
     }
 
@@ -825,7 +690,7 @@ _peripherals_err_t wifi_setup_start_wifi_driver(uint8_t* busy)
     // ok
 return_ok:
 
-    xSemaphoreGive(s_wifi_state_table->wifi_state_mutex);
+    xSemaphoreGive(g_task_sync_tools->wifi_state_mutex);
     return PERIPH_OK;
 
 }
@@ -840,14 +705,20 @@ _peripherals_err_t wifi_setup_start_scan_wifi(uint8_t* busy)
 {
     // check state flags
     // block all other task
-    xSemaphoreTake(s_wifi_state_table->wifi_state_mutex, portMAX_DELAY);   
+    xSemaphoreTake(g_task_sync_tools->wifi_state_mutex, portMAX_DELAY);   
 
     // if connecting return
     // if scanning return
     // if sta_scanned return
-    if( GET_BIT(s_wifi_state_table->wifi_ip_state,WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_CONNECTING) ||
-        GET_BIT(s_wifi_state_table->wifi_ip_state,WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_SCANNING)   ||
-        GET_BIT(s_wifi_state_table->wifi_ip_state,WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_SCANNED)   )
+    if( (! GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_STARTED))  || // no start driver -> no scan
+        GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_STARTING)     || // starting -> ...
+        GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_DRIVER_STOPPING)  || // stoping -> ...
+
+        GET_BIT(s_wifi_state_table->wifi_ip_state,WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_CONNECTING)    || // connecting -> ...
+        GET_BIT(s_wifi_state_table->wifi_ip_state,WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_DISCONNECTING) || // disconnecting -> ...
+
+        GET_BIT(s_wifi_state_table->wifi_ip_state,WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_SCANNING)      || // scanning -> no recall
+        GET_BIT(s_wifi_state_table->wifi_ip_state,WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_SCANNED)   )      // scanned  -> no rescan
     {
         #if CONFIG_DEBUG_ENABLE !=0
         send_peripheral_err_location(PERIPH_OK, __FILE__, __LINE__, "Wifi STA connecting/scanning/scanned");
@@ -884,7 +755,7 @@ _peripherals_err_t wifi_setup_start_scan_wifi(uint8_t* busy)
         send_peripheral_err_location(WIFI_SETUP_WIFI_SCAN_FAILED, __FILE__, __LINE__, esp_err_to_name(ret));
         #endif
 
-        xSemaphoreGive(s_wifi_state_table->wifi_state_mutex);
+        xSemaphoreGive(g_task_sync_tools->wifi_state_mutex);
         return WIFI_SETUP_WIFI_SCAN_FAILED;
     }
 
@@ -894,7 +765,7 @@ _peripherals_err_t wifi_setup_start_scan_wifi(uint8_t* busy)
     // ok
 return_ok:
 
-    xSemaphoreGive(s_wifi_state_table->wifi_state_mutex);
+    xSemaphoreGive(g_task_sync_tools->wifi_state_mutex);
     return PERIPH_OK;
 
 }
@@ -912,13 +783,19 @@ _peripherals_err_t wifi_setup_get_wifi_list_scanned(uint8_t* busy, uint16_t *num
 
     // check state flags
     // block all other task
-    xSemaphoreTake(s_wifi_state_table->wifi_state_mutex, portMAX_DELAY);   
+    xSemaphoreTake(g_task_sync_tools->wifi_state_mutex, portMAX_DELAY);   
 
     // if scanning return
     // if not have any sta_scanned return
 
-    if( (! GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_SCANNED) )  ||
-        GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_SCANNING))
+    if( (!GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_STARTED))    ||    // no start driver -> no list
+        GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_STARTING)      ||    // starting driver -> no list
+        GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_DRIVER_STOPPING)   ||    // stoping -> ...
+        
+        (! GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_SCANNED) )  ||    // no scanned -> ...
+        GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_SCANNING)   )        // scanning -> ... 
+
+
     {
         #if CONFIG_DEBUG_ENABLE !=0
         send_peripheral_err_location(PERIPH_OK, __FILE__, __LINE__, "Wifi STA scanning/no instance scanned");
@@ -954,7 +831,7 @@ _peripherals_err_t wifi_setup_get_wifi_list_scanned(uint8_t* busy, uint16_t *num
             send_peripheral_err_location(WIFI_SETUP_WIFI_AP_RECORD_ALLOC_FAILED, __FILE__, __LINE__, "Failed alloc memory for ap records");
             #endif
     
-            xSemaphoreGive(s_wifi_state_table->wifi_state_mutex);
+            xSemaphoreGive(g_task_sync_tools->wifi_state_mutex);
             return WIFI_SETUP_WIFI_AP_RECORD_ALLOC_FAILED;
 
         }
@@ -967,7 +844,7 @@ _peripherals_err_t wifi_setup_get_wifi_list_scanned(uint8_t* busy, uint16_t *num
             send_peripheral_err_location(WIFI_SETUP_GET_AP_LIST_FAILED, __FILE__, __LINE__, esp_err_to_name(ret));
             #endif
     
-            xSemaphoreGive(s_wifi_state_table->wifi_state_mutex);
+            xSemaphoreGive(g_task_sync_tools->wifi_state_mutex);
             return WIFI_SETUP_GET_AP_LIST_FAILED;
         }
     }
@@ -978,7 +855,7 @@ _peripherals_err_t wifi_setup_get_wifi_list_scanned(uint8_t* busy, uint16_t *num
     // ok
 return_ok:
 
-    xSemaphoreGive(s_wifi_state_table->wifi_state_mutex);
+    xSemaphoreGive(g_task_sync_tools->wifi_state_mutex);
     return PERIPH_OK;
 
 }
@@ -994,15 +871,22 @@ _peripherals_err_t wifi_setup_connect_to_access_point(uint8_t* busy)
 {
     // check state flags
     // block all other task
-    xSemaphoreTake(s_wifi_state_table->wifi_state_mutex, portMAX_DELAY);   
+    xSemaphoreTake(g_task_sync_tools->wifi_state_mutex, portMAX_DELAY);   
 
     // if connected return
     // if connecting return
     // if scanning return
 
-    if( GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_CONNECTED)   ||
-        GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_CONNECTING)   ||
-        GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_SCANNING)   )
+    if( !(GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_STARTED))  ||  // no start -> no connect 
+        GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_STARTING)    ||  // starting -> no connect
+
+        GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_DRIVER_STOPPING) ||  // stopping driver -> no connect
+
+        GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_CONNECTED)    || // connected -> no connect
+        GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_CONNECTING)   || // connecting -> no recall
+        GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_DISCONNECTING)|| // disconnecting -> no connect
+
+        GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_SCANNING)   )    // scanning -> no nonnect
     {
         #if CONFIG_DEBUG_ENABLE !=0
         send_peripheral_err_location(PERIPH_OK, __FILE__, __LINE__, "Wifi STA connected/connecting/scanning");
@@ -1026,7 +910,7 @@ _peripherals_err_t wifi_setup_connect_to_access_point(uint8_t* busy)
         send_peripheral_err_location(WIFI_SETUP_CONNECT_TO_WIFI_FAILED, __FILE__, __LINE__, esp_err_to_name(ret));
         #endif
 
-        xSemaphoreGive(s_wifi_state_table->wifi_state_mutex);
+        xSemaphoreGive(g_task_sync_tools->wifi_state_mutex);
         return WIFI_SETUP_CONNECT_TO_WIFI_FAILED;
     }
 
@@ -1036,7 +920,7 @@ _peripherals_err_t wifi_setup_connect_to_access_point(uint8_t* busy)
     // ok
 return_ok:
 
-    xSemaphoreGive(s_wifi_state_table->wifi_state_mutex);
+    xSemaphoreGive(g_task_sync_tools->wifi_state_mutex);
     return PERIPH_OK;
 
 }
@@ -1079,13 +963,21 @@ _peripherals_err_t wifi_setup_disconnect_wifi(uint8_t* busy)
 {
     // check state flags
     // block all other task
-    xSemaphoreTake(s_wifi_state_table->wifi_state_mutex, portMAX_DELAY);   
+    xSemaphoreTake(g_task_sync_tools->wifi_state_mutex, portMAX_DELAY);   
 
     // if sta_disconnecting return
     // if no sta_connected return
 
-    if( GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_DISCONNECTING)   ||
-    (! GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_CONNECTED) ))
+    if( (!GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_STARTED))  ||      // no start driver -> no disconnect
+        GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_STARTING)    ||      // starting -> ...
+
+        GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_DRIVER_STOPPING)     ||  // stopping -> ...
+
+        GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_CONNECTING)      ||  // connecting -> no disconnect
+        GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_DISCONNECTING)   ||  // disconnecting -> no recall
+        (! GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_CONNECTED) )  ||  // no connected -> no disconnect
+
+        GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_SCANNING))           // scanning -> no disnonnect
     {
         #if CONFIG_DEBUG_ENABLE !=0
         send_peripheral_err_location(PERIPH_OK, __FILE__, __LINE__, "Wifi STA no connect/disconnecting");
@@ -1108,7 +1000,14 @@ _peripherals_err_t wifi_setup_disconnect_wifi(uint8_t* busy)
         send_peripheral_err_location(WIFI_SETUP_DISCONNECT_TO_WIFI_FAILED, __FILE__, __LINE__, esp_err_to_name(ret));
         #endif
 
-        xSemaphoreGive(s_wifi_state_table->wifi_state_mutex);
+        // something wrong:
+        // Because we know befor was connected so we just call esp_wifi_disconnect();
+        // And we sure controlling all state, so the error maybe external Wifi missing connect
+        // No need ROLL BACK, just continue stop wifi or reconnect.
+
+        * busy = WIFI_SETUP_COMMAND_EXECUTED;
+
+        xSemaphoreGive(g_task_sync_tools->wifi_state_mutex);
         return WIFI_SETUP_DISCONNECT_TO_WIFI_FAILED;
     }
     // command done
@@ -1117,7 +1016,7 @@ _peripherals_err_t wifi_setup_disconnect_wifi(uint8_t* busy)
     // ok
 return_ok:
 
-    xSemaphoreGive(s_wifi_state_table->wifi_state_mutex);
+    xSemaphoreGive(g_task_sync_tools->wifi_state_mutex);
     return PERIPH_OK;
     
 }
@@ -1129,15 +1028,26 @@ _peripherals_err_t wifi_setup_stop_wifi_driver(uint8_t* busy)
 {
     // check state flags
     // block all other task
-    xSemaphoreTake(s_wifi_state_table->wifi_state_mutex, portMAX_DELAY);   
+    xSemaphoreTake(g_task_sync_tools->wifi_state_mutex, portMAX_DELAY);   
 
     
     // if driver_stopping return
     // if no sta_started return
     // if no ap_started return
-    if( GET_BIT(s_wifi_state_table->wifi_ip_state,WIFI_SETUP_WIFI_IP_FLAG_STATE_DRIVER_STOPPING)   ||
-        (  (! GET_BIT(s_wifi_state_table->wifi_ip_state,WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_STARTED))   &&
-           (! GET_BIT(s_wifi_state_table->wifi_ip_state,WIFI_SETUP_WIFI_IP_FLAG_STATE_AP_STARTED))       )   )
+    if( (! GET_BIT(s_wifi_state_table->wifi_ip_state,WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_STARTED))   || // no start -> no stop
+        (! GET_BIT(s_wifi_state_table->wifi_ip_state,WIFI_SETUP_WIFI_IP_FLAG_STATE_AP_STARTED))    || // no start -> no stop
+        
+        GET_BIT(s_wifi_state_table->wifi_ip_state,WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_STARTING)      || // starting -> no stop
+        GET_BIT(s_wifi_state_table->wifi_ip_state,WIFI_SETUP_WIFI_IP_FLAG_STATE_AP_STARTING)       || // starting -> no stop
+        
+        GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_DISCONNECTING)|| // disconnecting -> ...
+        GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_CONNECTING)   || // connecting -> ...
+        GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_CONNECTED)    || // connected -> ...
+
+        GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_SCANNING)     || // scanning -> no stop
+        GET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_SCANNED)      || // scanned -> no stop <- require read data scanned before stop
+
+        GET_BIT(s_wifi_state_table->wifi_ip_state,WIFI_SETUP_WIFI_IP_FLAG_STATE_DRIVER_STOPPING))     // stopping -> no recall
     {
         #if CONFIG_DEBUG_ENABLE !=0
         send_peripheral_err_location(PERIPH_OK, __FILE__, __LINE__, "Wifi driver stopping/sta no start/ap no start");
@@ -1160,7 +1070,7 @@ _peripherals_err_t wifi_setup_stop_wifi_driver(uint8_t* busy)
         send_peripheral_err_location(WIFI_SETUP_STOP_WIFI_FAILED, __FILE__, __LINE__, esp_err_to_name(ret));
         #endif
 
-        xSemaphoreGive(s_wifi_state_table->wifi_state_mutex);
+        xSemaphoreGive(g_task_sync_tools->wifi_state_mutex);
         return WIFI_SETUP_STOP_WIFI_FAILED;
     }
 
@@ -1170,7 +1080,7 @@ _peripherals_err_t wifi_setup_stop_wifi_driver(uint8_t* busy)
     // ok
 return_ok:
 
-    xSemaphoreGive(s_wifi_state_table->wifi_state_mutex);
+    xSemaphoreGive(g_task_sync_tools->wifi_state_mutex);
     return PERIPH_OK;
 }
 
@@ -1180,12 +1090,19 @@ return_ok:
 // clear struct table
 _peripherals_err_t wifi_setup_unregister_event_task()
 {
+    // block all other task
+    // warn: after call this funtion, event handler tasks call back by event task maybe queuing by mutex
+    // the mutex do not be deleted , it should alive with program
+    xSemaphoreTake(g_task_sync_tools->wifi_state_mutex, portMAX_DELAY);
+
     // check syntax
     if(s_wifi_state_table == NULL)
     {
         #if CONFIG_DEBUG_ENABLE !=0
         send_peripheral_err_location(WIFI_SETUP_WIFI_STATE_TABLE_IS_NULL, __FILE__, __LINE__, "can't free NULL table");
         #endif
+
+        xSemaphoreGive(g_task_sync_tools->wifi_state_mutex);
         return WIFI_SETUP_WIFI_STATE_TABLE_IS_NULL;
     }
     
@@ -1205,19 +1122,19 @@ _peripherals_err_t wifi_setup_unregister_event_task()
         #if CONFIG_DEBUG_ENABLE !=0
         send_peripheral_err_location(WIFI_SETUP_REGIST_EVENT_TASK_FAILED, __FILE__, __LINE__, esp_err_to_name(ret1 != ESP_OK ? ret1 : ret2));
         #endif
+
+        xSemaphoreGive(g_task_sync_tools->wifi_state_mutex);
         return WIFI_SETUP_UN_REGIST_EVENT_TASK_FAILED;
     }
 
     // free state struct
-
-    vSemaphoreDelete(s_wifi_state_table->wifi_state_mutex); // delete mutex
 
     // delete destintion AP old information in STA mode if it not NULL
     if(s_wifi_state_table->sta_dest_ap_connected != NULL) free(s_wifi_state_table->sta_dest_ap_connected);
 
     ap_list_client_connected_t *element, *temp;
 
-    // Duyệt và xóa từng phần tử
+    // fereach and delete all element in list
     LL_FOREACH_SAFE(s_wifi_state_table->ap_list_client_connected, element, temp)  // copy element->next and save in 'temp'
                                                               // then using temp to continue browse next element
     {
@@ -1230,6 +1147,7 @@ _peripherals_err_t wifi_setup_unregister_event_task()
     s_wifi_state_table = NULL;
 
     // ok
+    xSemaphoreGive(g_task_sync_tools->wifi_state_mutex);
     return PERIPH_OK;
 }
 
