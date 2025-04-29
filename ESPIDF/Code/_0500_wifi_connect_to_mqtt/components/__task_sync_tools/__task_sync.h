@@ -10,6 +10,7 @@
  */
 #include <stdio.h>
 
+#include <freertos/FreeRTOS.h>
 #include "freertos/semphr.h"
 
 #include "stdint.h"
@@ -18,6 +19,7 @@ typedef struct
 {
     // Wifi tasks tools
     SemaphoreHandle_t wifi_state_mutex;
+    SemaphoreHandle_t wifi_manager_apsta_mutex;
 
     // MQTT tasks tools
     SemaphoreHandle_t mqtt_state_mutex;

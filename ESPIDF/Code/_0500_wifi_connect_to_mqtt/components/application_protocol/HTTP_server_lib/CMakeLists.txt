@@ -4,4 +4,8 @@ idf_component_register(
     INCLUDE_DIRS
     "."
     "${PROJECT_DIR}/components/_reference_libs/"
-    "${PROJECT_DIR}/components/_peripherals_handle/")
+    "${PROJECT_DIR}/components/_peripherals_handle/"
+    "${PROJECT_DIR}/components/__task_sync_tools/"
+    REQUIRES
+    esp_http_server
+    nvs_flash)

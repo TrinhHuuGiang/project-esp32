@@ -213,16 +213,15 @@ typedef struct
             // default NULL if not connect. 
             // copy value feedback of WIFI_EVENT_STA_CONNECTED event
             // it will free and point to NULL if WIFI_EVENT_STA_DISCONNECTED
-        
-    // number service are using wifi like (http, mqtt, ...)
-    uint8_t wifi_service_num;  
-    
 } struct_wifi_state_t;
 
 // some function join synchronous will be feedback by REFUSED or EXECUTED
 // user can know state machine is busy to handle input command or can handle instantly
-#define WIFI_SETUP_COMMAND_REFUSED  (0)
-#define WIFI_SETUP_COMMAND_EXECUTED (1)
+typedef enum 
+{
+    WIFI_SETUP_COMMAND_REFUSED = 0,
+    WIFI_SETUP_COMMAND_EXECUTED = 1
+} wifi_setup_command_state_t;
 
 
 // reduce using RAM, using register 32 bit to save state flags
@@ -248,7 +247,8 @@ typedef enum
     WIFI_SETUP_WIFI_IP_FLAG_STATE_AP_STARTED ,       // started/ stopped
     WIFI_SETUP_WIFI_IP_FLAG_STATE_AP_STARTING,       // starting
     
-    WIFI_SETUP_WIFI_IP_FLAG_STATE_DRIVER_STOPPING    // stopping
+    WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_STOPPING,       // station mode stopping
+    WIFI_SETUP_WIFI_IP_FLAG_STATE_AP_STOPPING         // soft AP stopping
 } wifi_flag_state_t;
 
 
@@ -271,20 +271,48 @@ typedef enum
 // and esp32 can be client or server
 // APSTA mode easy to handle these situation
 
-// we need a driver for manage high level service (application layer)
-_peripherals_err_t wifi_setup_start_apsta_mode_manager_driver();
+typedef struct
+{
+    uint8_t driver_running; // set or clear by 'wifi_setup_start_apsta_mode_manager_driver()'
 
-// when register, if wifi driver in state of, manager will feedback REFUSE, so we can wait a minute and re register
+                            // + wifi_setup_start_apsta_mode_manager_driver()  -> stop_request = 0
+                            // + stop_request = 1 -> start clean running state -> driver_running = 0
+
+    uint8_t stop_request;   // set by 'wifi_setup_stop_apsta_mode_manager_driver()'
+                            // + wifi_setup_start_apsta_mode_manager_driver() -> stop_request = 0
+                            // + stop_request = 1 -> start clean running state -> driver_running = 0
+                            // + driver_running = 0 -> start stop apsta mode manager -> free wifi_manager_apsta_mode_t
+
+    // number service are using wifi like (http, mqtt, ...)
+    uint8_t wifi_service_num;  
+
+} wifi_manager_apsta_mode_t;
+
+// delay time manager check driver state
+#define WIFI_SETUP_DRIVER_MANAGER_APSTA_START_LOOP_WAIT_TIME   3000 // ms
+#define WIFI_SETUP_DRIVER_MANAGER_APSTA_STOP_LOOP_WAIT_TIME    3000 // ms
+
+
+
+// we need a driver for manage high level service (application layer)
+uint8_t wifi_setup_start_apsta_mode_manager_driver(
+    wifi_manager_apsta_mode_t** apsta_driver_manager);                   // <<< run in new task
+
+// when register, if wifi driver in state of, manager will feedback REFUSE,
+// so we can wait a minute and re register
 // if manager feedback ok , we will not allowed to re call this function before we un register service 
-_peripherals_err_t wifi_setup_register_a_service_with_apsta_mode_manager();
+uint8_t wifi_setup_register_a_service_with_apsta_mode_manager(
+    wifi_manager_apsta_mode_t* apsta_driver_manager);                   // just call when running manager driver
 
 // just un notify manager we want un register service and manager will countdown service is allowed :v
 // manager only know some service is running and number of service is allowed
-_peripherals_err_t wifi_setup_un_register_a_service_with_apsta_mode_manager();
+uint8_t wifi_setup_un_register_a_service_with_apsta_mode_manager(
+    wifi_manager_apsta_mode_t* apsta_driver_manager);                   // just call when running manager driver
 
 // this function will feedback REFUSE if someone service is running not jet unregister
 // wait a minute and try recall if all service disconnected
-_peripherals_err_t wifi_setup_stop_apsta_mode_manager_driver();
+uint8_t wifi_setup_stop_apsta_mode_manager_driver(
+    wifi_manager_apsta_mode_t** apsta_driver_manager);                    // stop and wait response after stopped manager driver
 
 
 // Note using wifi manager:
@@ -422,7 +450,7 @@ _peripherals_err_t wifi_setup_set_wifi_ap_config(uint8_t ssid[32], uint8_t passw
 // 1. after config all inform for wifi, start wifi
 // config struct_wifi_state_t to synchronous
 // from this time, function below will be synchronous by struct_wifi_state_t
-_peripherals_err_t wifi_setup_start_wifi_driver(uint8_t *busy);
+_peripherals_err_t wifi_setup_start_wifi_driver(wifi_setup_command_state_t *busy);
 
 // Note:
 // this function will alloc a struct to handle state of event feedback
@@ -440,7 +468,7 @@ _peripherals_err_t wifi_setup_start_wifi_driver(uint8_t *busy);
 // =================================== Only for STA in (STA/ STA+AP )  ===============================
 // Start scan
 // note: do not scan while connect (step 4) , connect function will abort scan and return error code
-_peripherals_err_t wifi_setup_start_scan_wifi(uint8_t *busy);
+_peripherals_err_t wifi_setup_start_scan_wifi(wifi_setup_command_state_t *busy);
 
 
 // get list scanned
@@ -448,7 +476,8 @@ _peripherals_err_t wifi_setup_start_scan_wifi(uint8_t *busy);
 // and create enough storage save the list
 // input a pointer level 2, point to a pointer managing NULL
 // return an array is alloc dynamic, copy list scanned
-_peripherals_err_t wifi_setup_get_wifi_list_scanned(uint8_t* busy, uint16_t *number, wifi_ap_record_t **ap_records);
+_peripherals_err_t wifi_setup_get_wifi_list_scanned(wifi_setup_command_state_t* busy, uint16_t *number, 
+    wifi_ap_record_t **ap_records);
 
 
 
@@ -457,7 +486,7 @@ _peripherals_err_t wifi_setup_get_wifi_list_scanned(uint8_t* busy, uint16_t *num
 // =================================== 4. Wifi connect phase       ===================================
 // =================================== Only for STA in (STA/ STA+AP ) ================================
 // 1. connect to wifi
-_peripherals_err_t wifi_setup_connect_to_access_point(uint8_t* busy);
+_peripherals_err_t wifi_setup_connect_to_access_point(wifi_setup_command_state_t* busy);
 
 
 
@@ -495,12 +524,12 @@ _peripherals_err_t wifi_setup_connect_to_access_point(uint8_t* busy);
 // disconnect only for STA in (STA/ STA+AP ) 
 // note we can ignore return of this state
 // or log into terminal disconnect unexpected
-_peripherals_err_t wifi_setup_disconnect_wifi(uint8_t* busy);
+_peripherals_err_t wifi_setup_disconnect_wifi(wifi_setup_command_state_t* busy);
 
 
 
 // Stop wifi driver
-_peripherals_err_t wifi_setup_stop_wifi_driver(uint8_t* busy);
+_peripherals_err_t wifi_setup_stop_wifi_driver(wifi_setup_command_state_t* busy);
 
 
 // unregister event loop

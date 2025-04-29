@@ -10,5 +10,6 @@ idf_component_register(
     INCLUDE_DIRS
     "."
     "${PROJECT_DIR}/components/_reference_libs/" # include reference libraries
+    "${PROJECT_DIR}/components/__task_sync_tools/"
     REQUIRES
     nvs_flash)

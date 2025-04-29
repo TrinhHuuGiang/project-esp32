@@ -1,63 +1,79 @@
+// connect to MQTT Cloud using MQTT and publish a message to a topic
+
+// using linux, get the certificate:
+// " openssl s_client -showcerts -connect [server url] 
+// </dev/null 2>/dev/null|openssl x509  -outform PEM >mqtt_eclipse_org.pem "
+
+// Note: 
+// - server url example: mqtt.eclipseprojects.io:8883 if using service cloud of 
+// mqtt.eclipseprojects.io
+
+// - example using mqtts from HiveMQ server:
+// "openssl s_client -showcerts -connect 7b92f852aa7b4f20a563529b35a8bd79.s1.eu.hivemq.cloud:8883
+// </dev/null 2>/dev/null|openssl x509  -outform PEM >mqtt_eclipse_org.pem"
+
+// -outform PEM > mqtt_eclipse_org.pem    // here we have certificate pem format
+
 /**
  * **********************************************************
  * Definitions
  * **********************************************************
  */
 #include "main.h"
+
 #define MAIN_TAG "MAIN_LOOP"
-#define WIFI_DRV "WIFI_DRIVER_LOOP"
+
+#define MAINLOOP_SLEEP_CYCLE 3000 // 3s
 
 // AP info
 #define WIFI_AP_SSID "Hello ESP32"
 #define WIFI_AP_PASSWORD "123123123"
 
-#define WIFI_RESET_TO_DEFAULT_BUTTON (25)
-
-
 // STA info
+// get by scan list
 
 
-// Wifi driver
-#define WIFI_DRV_RECHECK_NETWORK_CYCLE    (5000) // check network connect after 5s
-
+#define HTTP_TAG "HTTP_LOG"
 
 /**
  * **********************************************************
  * Variables
  * **********************************************************
  */
-// create led handle task
-static int return_all_flag = 0; // <<- notify father task and all task using this flag is some thing wrong happened, clean and return to retart for safe
+// error state
+static uint8_t s_err_notify = 0; // set if 1 funtion encounter an error
 
+// wifi
+static wifi_manager_apsta_mode_t* s_apsta_driver_manager = NULL;
 
-static uint8_t s_wifi_reset_factory_holding = 1; // pull up default, low is holding button
+// mqtt
+static char* s_broker_cert = NULL;// copy cert got from broker
+
 
 /**
  * **********************************************************
  * Prototypes
  * **********************************************************
  */
-static int init_special_wifi_button();
 
-// wifi factory reset
-// click a button to set default wifi status :)
-// no using interrupt low level, it not stable
-static void reset_wifi_to_factory_handler(void* arg);
+// copy cert got from broker
+static int mqtt_client_broker_cert_init(void);
+
+
+// http callback function
+static esp_err_t wifi_page_handler(httpd_req_t *req);
+static esp_err_t connect_handler(httpd_req_t *req);
 
 
 /**
  * **********************************************************
- * Drivers
+ * Task
  * **********************************************************
  */
 
-// driver manage state wifi when start wifi driver
-static void main_driver_control_wifi_apsta();
+//  wifi driver manager task
+static void wifi_apsta_mode_driver_manager(void* args);
 
-// driver manage http server when start wifi driver
-static void main_driver_control_http_server();
-
-// driver manage mqtt client
 
 /**
  * **********************************************************
@@ -67,9 +83,13 @@ static void main_driver_control_http_server();
 
 void app_main(void)
 {
+
+    // init tasks sync tools
+    if(task_sync_tools_init()) return;
+
+    // wifi variable
     esp_netif_t *sta_net_if = NULL;
     esp_netif_t *ap_net_if = NULL;
-    uint8_t wifi_busy = WIFI_SETUP_COMMAND_REFUSED;
 
     // setup wifi driver
     if(wifi_setup_init_nvs_flash()) return;
@@ -78,37 +98,96 @@ void app_main(void)
     if(wifi_setup_create_interface_wifi_STA_link_LwIP(&sta_net_if)) return;
     if(wifi_setup_create_interface_wifi_AP_link_LwIP(&ap_net_if)) return;
     if(wifi_setup_init_wifi_driver()) return;
-
+    
     ESP_LOGI(MAIN_TAG, "done init wifi driver");
 
-    // regist event notify
-    if(wifi_setup_regist_receive_event_task()) return;
-
-    ESP_LOGI(MAIN_TAG, "done regiser wifi/IP eventasks");
-    
-    // set config STA+AP mode
-    if(wifi_setup_set_wifi_mode(WIFI_MODE_APSTA)) return;
+    // set nvs content if it changed
     if(wifi_setup_set_wifi_country()) return;
+    if(wifi_setup_set_wifi_ap_config((uint8_t*)WIFI_AP_SSID, (uint8_t*)WIFI_AP_PASSWORD)) return;
 
-    ESP_LOGI(MAIN_TAG, "done setup mode/country");
+    ESP_LOGI(MAIN_TAG, "done setup country + wifi ap config");
+
+    // start manager apsta driver
+    xTaskCreate(wifi_apsta_mode_driver_manager, "wifi apsta manager", 2048, NULL , 3 , NULL );
+
+    // HTTP
+    printf("FreeRTOS heap size: %u\n", esp_get_free_heap_size());
+    printf("FreeRTOS minimum heap size: %u\n", esp_get_minimum_free_heap_size());
+
+    // init http server
+    // ESP_LOGW(MAIN_TAG, "wait 5 s");
+    // vTaskDelay(pdMS_TO_TICKS(5000));  // wait 5 second for start wifi
+    ESP_LOGW(HTTP_TAG, "HTTP starting ...");
     
-
-    // continue program while wifi driver handle event
-
-    // init button reset wifi
-    if(init_special_wifi_button()) return;
-
-    xTaskCreate(reset_wifi_to_factory_handler, "Wifi factory handler task", 2048, NULL, 5, NULL);
-    
-
-    while(!return_all_flag)
+    // 1. Bắt đầu server
+    if (http_server_handle_start_server() != PERIPH_OK)
     {
-        ESP_LOGW("Hello", "1s");
-
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        ESP_LOGE(HTTP_TAG, "Failed to start HTTP server");
+        return;
     }
 
-    ESP_LOGW(MAIN_TAG, "END PROGRAM");
+    // 2. Thêm URI cho trang config wifi
+    http_server_handle_append_uri_struct_to_list(
+        "/wifi",
+        HTTP_GET,
+        wifi_page_handler,
+        NULL,
+        0
+    );
+
+    // 3. Thêm URI cho xử lý kết nối
+    http_server_handle_append_uri_struct_to_list(
+        "/connect",
+        HTTP_POST,
+        connect_handler,
+        NULL,
+        0
+    );
+
+    // 4. Đăng ký URI vào server
+    if (http_server_handle_regist_uri_list_to_handler() != PERIPH_OK)
+    {
+        ESP_LOGE(HTTP_TAG, "Failed to register URI list");
+        return;
+    }
+
+    ESP_LOGI(HTTP_TAG, "HTTP server is up!");
+
+
+
+
+    // main loop
+    size_t total_DR = heap_caps_get_total_size(MALLOC_CAP_8BIT);
+
+    uint32_t rest_DR = 0;
+
+    double per_use = 0;
+    uint8_t used_level = 0;
+
+    while(!s_err_notify)
+    {
+        ESP_LOGI(MAIN_TAG,"Main loop - 1s");
+        printf("0. _ Total   DRAM          : %u B\n", total_DR);
+        printf("1. _ Current DRAM heap size: %u B\n", rest_DR = esp_get_free_heap_size());
+        
+        per_use = 1 - ((double)rest_DR/ total_DR);
+
+        used_level = per_use * 10;
+
+        printf("[");
+        for(uint8_t i = 0; i < 10 ; i++)
+        {
+            if(i<=used_level) printf("#");
+            else printf("_");
+        }
+        printf("] - %f%c \n", per_use*100,37);
+
+        vTaskDelay(pdMS_TO_TICKS(MAINLOOP_SLEEP_CYCLE));
+    }
+
+    // exit
+    ESP_LOGE(MAIN_TAG, "SYSTEM GET ERROR !!");
+
     return;
 }
 
@@ -120,130 +199,76 @@ void app_main(void)
  * **********************************************************
  */
 
-// init button
-static int init_special_wifi_button()
+// copy cert got from broker
+static int mqtt_client_broker_cert_init(void)
 {
-    // install isr service for GPIO
-    if(gpio_setup_install_isr_service_for_gpio_system()) return 1;
+    int cert_len = strlen(MQTT_BROKER_CERTIFICATE);
 
-    if(gpio_setup_reset_pin_to_origin(WIFI_RESET_TO_DEFAULT_BUTTON)) return 1;
+    char* calloc_cert = calloc(cert_len + 1, sizeof(char));
 
-    // gpio in
-    if(gpio_setup_io_direction(WIFI_RESET_TO_DEFAULT_BUTTON,GPIO_MODE_INPUT)) return 1;
+    if(calloc_cert == NULL)
+    {
+        return 1; // failed to alloc cert
+    }
 
-    // set pull
-    if(gpio_setup_pull_res(WIFI_RESET_TO_DEFAULT_BUTTON,GPIO_PULLUP_ONLY)) return 1;
+    s_broker_cert = calloc_cert;
 
+    return 0; // ok
 
-    return 0;
 }
 
 
-
-
-
-// handle hold button and factory reset wifi
-static void reset_wifi_to_factory_handler(void* arg)
+//  wifi driver manager task
+static void wifi_apsta_mode_driver_manager(void* args)
 {
-    int count_temp = 5;
+    if(wifi_setup_start_apsta_mode_manager_driver(&s_apsta_driver_manager)) s_err_notify = 1; // set err notify if return error
 
-    while(!return_all_flag)
-    {
-        // first check
-        if(gpio_setup_get_logic_level(WIFI_RESET_TO_DEFAULT_BUTTON, &s_wifi_reset_factory_holding)) 
-        {
-            return_all_flag = 1;
-            break;
-        }
-
-        while(!s_wifi_reset_factory_holding) // pull up : if logic 0 -> holding, 1 is idle
-        {
-            ESP_LOGE(MAIN_TAG, "Prepare reset wifi to factory [%d]",count_temp);
-
-            if(!count_temp) // ok start reset
-            {
-                // default sta inform
-                // wifi_setup_set_wifi_sta_config(uint8_t ssid[32] , uint8_t password[64], uint8_t bssid[6]);
-
-                // default ap inform
-                wifi_setup_set_wifi_ap_config((uint8_t*)WIFI_AP_SSID,(uint8_t*) WIFI_AP_PASSWORD);   
-            }
-
-            // count down
-            count_temp --;
-
-
-            // hanging if reset done
-            // reset done, release button
-            if(count_temp < 0)
-            {
-                ESP_LOGE(MAIN_TAG, "Please release reset button");
-                count_temp = -1;
-            }
-
-            // delay
-            
-            vTaskDelay(pdMS_TO_TICKS(1000));// 1s
-
-            // recheck
-            if(gpio_setup_get_logic_level(WIFI_RESET_TO_DEFAULT_BUTTON, &s_wifi_reset_factory_holding)) 
-            {
-                return_all_flag = 1;
-                break;
-            }
-        }
-
-        // reset count
-        count_temp = 5;
-
-        //delay
-        vTaskDelay(pdMS_TO_TICKS(200));
-    }
     // exit
     vTaskDelete(NULL);
 }
 
 
 
+// http
 
-
-
-// driver control apsta mode
-static void main_driver_control_wifi_apsta(void* arg)
+// Hàm handler cho trang web /wifi
+static esp_err_t wifi_page_handler(httpd_req_t *req)
 {
-    int wifi_busy = WIFI_SETUP_COMMAND_REFUSED;
+    const char html_response[] = 
+        "<!DOCTYPE html>"
+        "<html>"
+        "<head><title>WiFi Config</title></head>"
+        "<body>"
+        "<h2>Enter WiFi Credentials</h2>"
+        "<form action=\"/connect\" method=\"POST\">"
+        "SSID: <input type=\"text\" name=\"ssid\"><br>"
+        "Password: <input type=\"password\" name=\"password\"><br><br>"
+        "<input type=\"submit\" value=\"Connect\">"
+        "</form>"
+        "</body>"
+        "</html>";
 
-    // Wifi driver start
-    while(!return_all_flag)
-    {
-        ESP_LOGW(WIFI_DRV, "Checking wifi ...");
+    httpd_resp_send(req, html_response, HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+}
 
-        // [apsta] try starting / check started wifi driver
-        wifi_busy = WIFI_SETUP_COMMAND_EXECUTED;
-        while(wifi_busy == WIFI_SETUP_COMMAND_EXECUTED)
-        {
-            if(wifi_setup_start_wifi_driver(&wifi_busy)) return;  // if wifi stopped -> try start it
-        }
-
-        ESP_LOGI(WIFI_DRV, "Starting/started APSTA driver");
-
-        // [sta] try connecting / connected
-        wifi_busy = WIFI_SETUP_COMMAND_EXECUTED;
-        while(wifi_busy != WIFI_SETUP_COMMAND_EXECUTED) 
-        {
-            if(wifi_setup_connect_to_access_point(&wifi_busy)) return; // if wifi sta no access to AP -> try connect it
-        }
-
-        ESP_LOGI(WIFI_DRV, "Connecting/connected STA to AP");
-        
-        // sleep task
-        vTaskDelay(pdMS_TO_TICKS(WIFI_DRV_RECHECK_NETWORK_CYCLE)); // sleep 2s then continue check
+// Hàm handler để nhận SSID và Password gửi lên
+static esp_err_t connect_handler(httpd_req_t *req)
+{
+    char buf[100];
+    int ret = httpd_req_recv(req, buf, sizeof(buf));
+    if (ret <= 0) {
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
     }
 
-    // Try stop wifi driver
+    buf[ret] = '\0'; // null-terminate chuỗi
 
-    // 1. 
+    ESP_LOGI(HTTP_TAG, "Received POST data: %s", buf);
 
-    // exit
-    vTaskDelete(NULL);
+    httpd_resp_sendstr(req, "Connecting...");
+
+    // Ở đây bạn có thể parse chuỗi buf để lấy ssid và password nhé
+
+    return ESP_OK;
 }

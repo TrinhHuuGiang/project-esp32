@@ -12,6 +12,8 @@
         "mqtt_supported_features.h": "c",
         "mqtt_outbox.h": "c",
         "platform.h": "c",
-        "mqtt_msg.h": "c"
+        "mqtt_msg.h": "c",
+        "esp_wifi.h": "c",
+        "esp_event_base.h": "c"
     }
 }

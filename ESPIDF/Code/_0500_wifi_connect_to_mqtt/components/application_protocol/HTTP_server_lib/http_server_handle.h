@@ -1,3 +1,8 @@
+// Note: 
+// + in menuconfig, go to: 
+//      - HTTP_Server and change "Max HTTP Request Header Length"
+//      - default 512 something quite small with website header now
+
 #ifndef _HTTP_SERVER_HANDLE_H_
 #define _HTTP_SERVER_HANDLE_H_
 
@@ -25,6 +30,8 @@
 
 //user
 #include "_peripherals_err.h"
+
+#include "wifi_setup_handle.h"
 
 // reference
 #include "utlist.h"

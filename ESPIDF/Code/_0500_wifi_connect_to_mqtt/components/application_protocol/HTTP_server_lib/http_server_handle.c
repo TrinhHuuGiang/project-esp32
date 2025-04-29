@@ -34,6 +34,9 @@ _peripherals_err_t http_server_handle_start_server()
 
     // http start
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+    config.max_open_sockets = WIFI_SETUP_WIFI_CONFIG_AP_MAX_CONN;
+    
+
     esp_err_t ret = httpd_start(&(s_http_server_manager->server_handle) , &config );
 
     if(ret != ESP_OK)

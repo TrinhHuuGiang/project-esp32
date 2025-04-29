@@ -31,6 +31,7 @@
 #include "freertos/task.h"
 #include "esp_system.h"
 
+#define MQTT_SUPPORTED_FEATURE_EVENT_LOOP // before use mqtt_client.h define it to use event loops
 #include "mqtt_client.h"
 
 //user
@@ -108,6 +109,13 @@ typedef enum
 } mqtt_retain_type_t;
 
 
+// user can know state machine is busy
+typedef enum
+{
+    MQTT_CLIENT_COMMAND_REFUSED = 0,
+    MQTT_CLIENT_COMMAND_EXECUTED = 1,
+} mqtt_client_command_state_t;
+
 /**
  * **********************************************************
  * APIs
@@ -127,7 +135,7 @@ _peripherals_err_t mqtt_client_handle_regist_receive_event_task();
 
 
 // start communicate mqtt from esp client to broker server
-_peripherals_err_t mqtt_client_handle_client_start();
+_peripherals_err_t mqtt_client_handle_client_start(mqtt_client_command_state_t* busy);
 
 
 
@@ -135,11 +143,11 @@ _peripherals_err_t mqtt_client_handle_client_start();
 // =================================== Handle event mqtt funtions  ===================================
 // =================================== ==========================  ===================================
 //  
-_peripherals_err_t mqtt_client_handle_client_reconnect();
+_peripherals_err_t mqtt_client_handle_client_reconnect(mqtt_client_command_state_t* busy);
 
 
 
-_peripherals_err_t mqtt_client_handle_client_disconnect();
+_peripherals_err_t mqtt_client_handle_client_disconnect(mqtt_client_command_state_t* busy);
 
 
 int mqtt_client_handle_client_subcribe_topic(const char* topic, mqtt_qos_type_t qos);
@@ -162,10 +170,10 @@ mqtt_data_node_t* mqtt_client_handle_read_next_data();
 
 
 
-_peripherals_err_t mqtt_client_handle_client_stop();
+_peripherals_err_t mqtt_client_handle_client_stop(mqtt_client_command_state_t* busy);
 
 _peripherals_err_t mqtt_client_handle_un_regist_receive_event_task();
 
-_peripherals_err_t mqtt_client_handle_cliet_de_init();
+_peripherals_err_t mqtt_client_handle_client_de_init();
 
 #endif

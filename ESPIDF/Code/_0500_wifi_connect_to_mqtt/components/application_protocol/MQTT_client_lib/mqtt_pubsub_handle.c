@@ -91,7 +91,7 @@ static void mqtt_client_handle_mqtt_event_handler
     // check client manager struct
     if(s_mqtt_client_manager == NULL)
     {
-        return;
+        goto give_sema;
     }
 
     // check event
@@ -99,9 +99,7 @@ static void mqtt_client_handle_mqtt_event_handler
     {
     case MQTT_EVENT_BEFORE_CONNECT:
         // dont care
-        xSemaphoreGive(g_task_sync_tools->mqtt_state_mutex);
-
-        break;
+        goto give_sema;
 
     case MQTT_EVENT_CONNECTED:
         // connected to broker server
@@ -112,7 +110,7 @@ static void mqtt_client_handle_mqtt_event_handler
         // clear connecting state
         CLR_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_CONNECTING);
         
-        break;
+        goto give_sema;
     case MQTT_EVENT_DISCONNECTED:
         // clear connected state
         CLR_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_CONNECTED);
@@ -120,7 +118,7 @@ static void mqtt_client_handle_mqtt_event_handler
         // clear disconnecting state
         CLR_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_DISCONNECTING);
 
-        break;
+        goto give_sema;
     
     case MQTT_EVENT_SUBSCRIBED:
         // subcribed topic
@@ -129,21 +127,27 @@ static void mqtt_client_handle_mqtt_event_handler
         // clear subcribing state
         CLR_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_SUBCRIBING);
         
-        break;
+        goto give_sema;
     
     case MQTT_EVENT_UNSUBSCRIBED:
         // clear un subcribing state
         CLR_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_UN_SUBCRIBING);
         
-        break;
+        goto give_sema;
     
     case MQTT_EVENT_PUBLISHED:
         // clear publishing state
         CLR_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_PUBLISHING);
         
-        break;
+        goto give_sema;
     
     case MQTT_EVENT_DATA:
+    {
+        if(event_data == NULL)
+        {
+            goto give_sema;
+        }
+        
         // new data from topic
         SET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_DATA_COME);
 
@@ -155,7 +159,7 @@ static void mqtt_client_handle_mqtt_event_handler
             #if CONFIG_DEBUG_ENABLE !=0
             send_peripheral_err_location(PERIPH_OK, __FILE__, __LINE__, "Failed alloc new mqtt data node");
             #endif
-            break;
+            goto give_sema;
         }
 
         // copy topic
@@ -165,7 +169,7 @@ static void mqtt_client_handle_mqtt_event_handler
         if(new_data->topic == NULL)
         {
             free(new_data);
-            break;
+            goto give_sema;
         }
 
         memcpy(new_data->topic, event->topic, event->topic_len);
@@ -177,7 +181,7 @@ static void mqtt_client_handle_mqtt_event_handler
         {
             free(new_data->topic);
             free(new_data);
-            break;
+            goto give_sema;
         }
         memcpy(new_data->data, event->data, event->data_len);
         new_data->data_len = event->data_len;
@@ -185,7 +189,8 @@ static void mqtt_client_handle_mqtt_event_handler
         // add to head of linked list
         LL_PREPEND(s_mqtt_client_manager->incoming_data_list, new_data);
 
-        break;
+        goto give_sema;
+    }
     
     case MQTT_EVENT_ERROR:
         // error message
@@ -193,14 +198,15 @@ static void mqtt_client_handle_mqtt_event_handler
         
         // :) comming soon
 
-        break;
+        goto give_sema;
     
     default:
         // don't care
-        break;
+        goto give_sema;
     }
     
     // unlock after done task
+give_sema:
     xSemaphoreGive(g_task_sync_tools->mqtt_state_mutex);
 }
 
@@ -227,18 +233,19 @@ _peripherals_err_t mqtt_client_handle_regist_receive_event_task()
 
 
 // start communicate mqtt from esp client to broker server
-_peripherals_err_t mqtt_client_handle_client_start()
+_peripherals_err_t mqtt_client_handle_client_start(mqtt_client_command_state_t* busy)
 {
     xSemaphoreTake(g_task_sync_tools->mqtt_state_mutex, portMAX_DELAY);
 
     // check if connecting state / started state
-    if(GET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_CONNECTING) ||
-        GET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_STARTED))
+    if(GET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_CONNECTING) || // connecting -> no start
+        GET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_STARTED))     // started    -> no start
     {
         #if CONFIG_DEBUG_ENABLE !=0
         send_peripheral_err_location(PERIPH_OK, __FILE__, __LINE__, "MQTT client start failed");
         #endif
 
+        *busy = MQTT_CLIENT_COMMAND_REFUSED; // already connecting/started state
         goto return_ok; // already connecting/started state
     }
 
@@ -259,6 +266,9 @@ _peripherals_err_t mqtt_client_handle_client_start()
         return MQTT_CLIENT_CLIENT_START_FAILED;
     }
 
+    // execute command done
+    *busy = MQTT_CLIENT_COMMAND_EXECUTED; // command done
+
     // ok
 return_ok:
     xSemaphoreGive(g_task_sync_tools->mqtt_state_mutex);
@@ -273,7 +283,7 @@ return_ok:
 // =================================== Handle event mqtt funtions  ===================================
 // =================================== ==========================  ===================================
 //  
-_peripherals_err_t mqtt_client_handle_client_reconnect()
+_peripherals_err_t mqtt_client_handle_client_reconnect(mqtt_client_command_state_t* busy)
 {
     xSemaphoreTake(g_task_sync_tools->mqtt_state_mutex, portMAX_DELAY);
 
@@ -286,6 +296,7 @@ _peripherals_err_t mqtt_client_handle_client_reconnect()
         send_peripheral_err_location(PERIPH_OK, __FILE__, __LINE__, "MQTT client reconnect failed");
         #endif
 
+        *busy = MQTT_CLIENT_COMMAND_REFUSED; // already connecting/started/connected state
         goto return_ok; // already connecting/started/connected state
     }
     
@@ -307,6 +318,9 @@ _peripherals_err_t mqtt_client_handle_client_reconnect()
         return MQTT_CLIENT_CLIENT_RECONNECT_FAILED;
     }
 
+    // execute command done
+    *busy = MQTT_CLIENT_COMMAND_EXECUTED; // command done
+
     // ok
 return_ok:
     xSemaphoreGive(g_task_sync_tools->mqtt_state_mutex);
@@ -315,20 +329,21 @@ return_ok:
 
 
 
-_peripherals_err_t mqtt_client_handle_client_disconnect()
+_peripherals_err_t mqtt_client_handle_client_disconnect(mqtt_client_command_state_t* busy)
 {
     xSemaphoreTake(g_task_sync_tools->mqtt_state_mutex, portMAX_DELAY);
 
     // check if disconnecting / started / connected state
-    if(GET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_DISCONNECTING) ||
-        GET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_STARTED)      ||
-        GET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_CONNECTING)   ||
-        GET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_CONNECTED))
+    if(GET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_DISCONNECTING) || // disconnecting -> no disconnect
+        ! GET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_STARTED)    || // no start      -> no disconnect
+        GET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_CONNECTING)   || // connecting    -> no disconnect
+        ! GET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_CONNECTED))    // disconnected  -> no disconnect 
     {
         #if CONFIG_DEBUG_ENABLE !=0
         send_peripheral_err_location(PERIPH_OK, __FILE__, __LINE__, "MQTT client disconnect failed");
         #endif
 
+        *busy = MQTT_CLIENT_COMMAND_REFUSED; // already disconnecting/started/connected state
         goto return_ok; // already disconnecting/started/connected state
     }
 
@@ -348,6 +363,9 @@ _peripherals_err_t mqtt_client_handle_client_disconnect()
         xSemaphoreGive(g_task_sync_tools->mqtt_state_mutex);
         return MQTT_CLIENT_CLIENT_DISCONNECT_FAILED;
     }
+
+    // execute command done
+    *busy = MQTT_CLIENT_COMMAND_EXECUTED; // command done
 
     // ok
 return_ok:
@@ -480,20 +498,21 @@ mqtt_data_node_t* mqtt_client_handle_read_next_data()
 
 
 // this function is blocking until stop is done or error
-_peripherals_err_t mqtt_client_handle_client_stop()
+_peripherals_err_t mqtt_client_handle_client_stop(mqtt_client_command_state_t* busy)
 {
     xSemaphoreTake(g_task_sync_tools->mqtt_state_mutex, portMAX_DELAY);
 
     // check if disconnecting / started / connected state
-    if( GET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_DISCONNECTING) ||
-        ! GET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_STARTED)     ||
-        GET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_CONNECTING)    ||
-        GET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_CONNECTED))
+    if( GET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_DISCONNECTING) ||  // disconnecting -> no stop
+        ! GET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_STARTED)     ||  // no start      -> no stop
+        GET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_CONNECTING)    ||  // connecting    -> no stop
+        GET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_CONNECTED))        // connected     -> no -> disconnect first 
     {
         #if CONFIG_DEBUG_ENABLE !=0
         send_peripheral_err_location(PERIPH_OK, __FILE__, __LINE__, "MQTT client stop failed");
         #endif
 
+        *busy = MQTT_CLIENT_COMMAND_REFUSED; // already disconnecting/started/connected state
         goto return_ok; // already disconnecting/started/connected state
     }
 
@@ -505,11 +524,16 @@ _peripherals_err_t mqtt_client_handle_client_stop()
         #if CONFIG_DEBUG_ENABLE !=0
         send_peripheral_err_location(MQTT_CLIENT_CLIENT_STOP_FAILED, __FILE__, __LINE__, esp_err_to_name(ret));
         #endif
+
+        xSemaphoreGive(g_task_sync_tools->mqtt_state_mutex);
         return MQTT_CLIENT_CLIENT_STOP_FAILED;
     }
 
     // clear state started
     CLR_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_STARTED);
+
+    // command done
+    *busy = MQTT_CLIENT_COMMAND_EXECUTED; // command done
 
     // ok
 return_ok:
@@ -526,7 +550,7 @@ _peripherals_err_t mqtt_client_handle_un_regist_receive_event_task()
     // esp no supply a function for unregister event loop, but in funtion register , esp32 simple using function
     // esp_event_handler_register_with() so we unregister with function below
 
-    esp_err_t ret = esp_event_handler_unregister(MQTT_EVENTS, ESP_EVENT_ANY_ID, s_mqtt_client_manager->client_handle);
+    esp_err_t ret = esp_event_handler_unregister("MQTT_EVENTS", ESP_EVENT_ANY_ID, s_mqtt_client_manager->client_handle);
 
     // error
     if(ret!=ESP_OK)
@@ -534,6 +558,8 @@ _peripherals_err_t mqtt_client_handle_un_regist_receive_event_task()
         #if CONFIG_DEBUG_ENABLE !=0
         send_peripheral_err_location(MQTT_CLIENT_CLIENT_UN_REGIST_EVENT_TASK_FAILED, __FILE__, __LINE__, esp_err_to_name(ret));
         #endif
+
+        xSemaphoreGive(g_task_sync_tools->mqtt_state_mutex);
         return MQTT_CLIENT_CLIENT_UN_REGIST_EVENT_TASK_FAILED;
     }
 
@@ -556,6 +582,8 @@ _peripherals_err_t mqtt_client_handle_client_de_init()
         #if CONFIG_DEBUG_ENABLE !=0
         send_peripheral_err_location(MQTT_CLIENT_CLIENT_DESTROY_FAILED, __FILE__, __LINE__, esp_err_to_name(ret));
         #endif
+
+        xSemaphoreGive(g_task_sync_tools->mqtt_state_mutex);
         return MQTT_CLIENT_CLIENT_DESTROY_FAILED;
     }
 
