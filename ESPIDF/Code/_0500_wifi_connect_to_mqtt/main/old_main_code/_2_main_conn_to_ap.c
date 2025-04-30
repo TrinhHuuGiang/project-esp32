@@ -32,46 +32,8 @@
 // STA info
 // get by scan list
 
+
 #define HTTP_TAG "HTTP_LOG"
-
-
-
-// MQTT
-#define MQTT_TAG "MQTT_LOG"
-#define MQTT_BROKER_URI "7b92f852aa7b4f20a563529b35a8bd79.s1.eu.hivemq.cloud:8883"
-#define MQTT_BROKER_USER "mqtt_giangtrinh"
-#define MQTT_BROKER_PASS "123abcABC"
-#define MQTT_BROKER_CERTIFICATE "-----BEGIN CERTIFICATE-----\n" \
-"MIIFPDCCBCSgAwIBAgISBlvO6+BhAYoAodu3Tizj+vEDMA0GCSqGSIb3DQEBCwUA\n" \
-"MDMxCzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBFbmNyeXB0MQwwCgYDVQQD\n" \
-"EwNSMTEwHhcNMjUwNDIyMjA1OTMwWhcNMjUwNzIxMjA1OTI5WjAfMR0wGwYDVQQD\n" \
-"DBQqLnMxLmV1LmhpdmVtcS5jbG91ZDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCC\n" \
-"AQoCggEBAKVuz2sMPmxx2w/f81/YAEKTbNZMJPk2+ooLFg5hxXvReF+AwIT4XvZ+\n" \
-"MLhSKvFxmghJF+BB9WyhqrcJLGDCP4s6SOLWTYixEoTcaLUviqqn+06kYqDJ6E83\n" \
-"NGsc7T42DlPnzqcZZjPRed9rt4CP3RgeZlWyYZgiD8FoJG9gie8ytihF/FkGZT8T\n" \
-"N4Vkl2vQa3mfBWeeKrcuhcLPxqIWDz/30iYfLtEe5JYYScoCKTXcP9SUStjpR8pD\n" \
-"vfOWdvasOAuBy7yBbx01/4lcQt50hfbhTR/K14/D4rNkuuvU7ktSQnoxVXC8YDwG\n" \
-"zkny10DFt65mVYLNZcBQtOLHHOZGV30CAwEAAaOCAlwwggJYMA4GA1UdDwEB/wQE\n" \
-"AwIFoDAdBgNVHSUEFjAUBggrBgEFBQcDAQYIKwYBBQUHAwIwDAYDVR0TAQH/BAIw\n" \
-"ADAdBgNVHQ4EFgQUgsEjDU35+EWJKBsFxJ0lM0PXMi4wHwYDVR0jBBgwFoAUxc9G\n" \
-"pOr0w8B6bJXELbBeki8m47kwVwYIKwYBBQUHAQEESzBJMCIGCCsGAQUFBzABhhZo\n" \
-"dHRwOi8vcjExLm8ubGVuY3Iub3JnMCMGCCsGAQUFBzAChhdodHRwOi8vcjExLmku\n" \
-"bGVuY3Iub3JnLzAzBgNVHREELDAqghQqLnMxLmV1LmhpdmVtcS5jbG91ZIISczEu\n" \
-"ZXUuaGl2ZW1xLmNsb3VkMBMGA1UdIAQMMAowCAYGZ4EMAQIBMC0GA1UdHwQmMCQw\n" \
-"IqAgoB6GHGh0dHA6Ly9yMTEuYy5sZW5jci5vcmcvNC5jcmwwggEFBgorBgEEAdZ5\n" \
-"AgQCBIH2BIHzAPEAdgAN4fIwK9MNwUBiEgnqVS78R3R8sdfpMO8OQh60fk6qNAAA\n" \
-"AZZfgg0JAAAEAwBHMEUCIQCENUD4FWITFwnyxsOr4D54wR+LUgZyEjwMd+GwHiha\n" \
-"agIgOdeXyofPYtzl2DajwNvR+6XbCikAbbQvZTZ4Eahu2coAdwDM+w9qhXEJZf6V\n" \
-"m1PO6bJ8IumFXA2XjbapflTA/kwNsAAAAZZfghU/AAAEAwBIMEYCIQDu8/zVPYFl\n" \
-"bmd1vt5Fqk0sXJLV+MEFhQH75Kn6jlvtFgIhAOA8DAE1QBWXxmYSyFXw9UvC4EvH\n" \
-"4+VR1cA8merS5vl4MA0GCSqGSIb3DQEBCwUAA4IBAQBVET3hPDZX/protLVPy/vX\n" \
-"4i41k5J3teGokrEMu/TdMN6i/W7555Vsgl1zXj5a1f+4FsQ2Nfh1sDMuz/Djzgxp\n" \
-"M8HMifB5HJTX+slAuElLzlQFCxMVNn3+b4BgpxvwA3srrXGudF3cya0qztg5lNju\n" \
-"y6zAjYfxMQA0uHtCSuxKk033uFkeBv1ui3XWC1JcISbsoF47RVBp/a5O3kBr+j18\n" \
-"k5qL7dWcKWr2S9JctGCH4ezYNmAG9W6w/KoTHH3HJCWrTzziJutY48Rwt4gJcS1s\n" \
-"OSV8OT5pGKVpVnKSSOz4ItIaqis6fdetTiba38lUyzjDNklYL72Ye4Ck+qvjyc33\n" \
-"-----END CERTIFICATE-----" \
-
 
 /**
  * **********************************************************
@@ -199,10 +161,6 @@ void app_main(void)
 
     ESP_LOGI(HTTP_TAG, "HTTP server is up!");
 
-
-    // MQTT init
-    if(mqtt_client_handle_client_init(MQTT_BROKER_URI, MQTT_BROKER_CERTIFICATE, 0, MQTT_BROKER_USER, MQTT_BROKER_PASS)) return;
-    if(mqtt_client_handle_regist_receive_event_task()) return;
 
 
 
@@ -428,26 +386,4 @@ static void url_decode(char *dst, const char *src)
         }
     }
     *dst = '\0';
-}
-
-
-
-// MQTT TASK
-static void mqtt_task(void* args)
-{
-    wifi_setup_command_state_t busy = WIFI_SETUP_COMMAND_EXECUTED;
-
-
-    while(busy == WIFI_SETUP_COMMAND_EXECUTED)
-    {
-        if(mqtt_client_handle_client_start(&busy)) goto exit_mqtt_task;
-    }
-
-
-
-    // exit
-
-exit_mqtt_task:
-    ESP_LOGW(MQTT_TAG, "Mqtt task ended !!!");
-    vTaskDelete(NULL);
 }

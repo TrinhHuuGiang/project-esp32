@@ -289,8 +289,8 @@ typedef struct
 } wifi_manager_apsta_mode_t;
 
 // delay time manager check driver state
-#define WIFI_SETUP_DRIVER_MANAGER_APSTA_START_LOOP_WAIT_TIME   3000 // ms
-#define WIFI_SETUP_DRIVER_MANAGER_APSTA_STOP_LOOP_WAIT_TIME    3000 // ms
+#define WIFI_SETUP_DRIVER_MANAGER_APSTA_START_LOOP_WAIT_TIME   5000 // ms
+#define WIFI_SETUP_DRIVER_MANAGER_APSTA_STOP_LOOP_WAIT_TIME    5000 // ms
 
 
 
