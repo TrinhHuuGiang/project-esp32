@@ -485,6 +485,8 @@ static void wifi_setup_wifi_event_handler
 
             case WIFI_EVENT_STA_CONNECTED: // done connect
             {
+                ESP_LOGI("WIFI_LOG", "CONNECTED to ROUTER" );
+
                 // + raise sta_connected
                 SET_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_CONNECTED);
 
@@ -511,6 +513,7 @@ static void wifi_setup_wifi_event_handler
 
 
             case WIFI_EVENT_STA_DISCONNECTED:
+                ESP_LOGI("WIFI_LOG", "DISCONNECT to ROUTER" );
                 
                 // + clear sta_connected
                 CLR_BIT(s_wifi_state_table->wifi_ip_state, WIFI_SETUP_WIFI_IP_FLAG_STATE_STA_CONNECTED);

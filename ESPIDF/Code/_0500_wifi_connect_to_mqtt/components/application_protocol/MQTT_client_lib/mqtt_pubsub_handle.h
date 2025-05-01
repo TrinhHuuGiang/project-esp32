@@ -79,7 +79,6 @@ typedef enum
     MQTT_PUBSUB_FLAG_STATE_CONNECTED,   // connected/ disconnected
 
     MQTT_PUBSUB_FLAG_STATE_SUBCRIBING,  // subcribing topic
-    MQTT_PUBSUB_FLAG_STATE_SUBCRIBED,   // subcribed topic
 
     MQTT_PUBSUB_FLAG_STATE_UN_SUBCRIBING, // unsubcribing topic
 

@@ -58,10 +58,13 @@ const char* username, const char* password)
         .username = username,
         .password = password,
         .client_id = NULL,               // default using 3byte last of MAC address
-        .disable_clean_session = false   // false -> always clean session when disconnect 
-                                        // true -> keep session when disconnect -> warn leak memory broker if change another client_id
-                                        // session == subcribe topic, publish data, etc
-                                        
+        .disable_clean_session = false,  // false -> always clean session when disconnect 
+                                         // true -> keep session when disconnect -> warn leak memory broker if change another client_id
+                                         // session == subcribe topic, publish data, etc
+        .disable_auto_reconnect = true,   // control reconnect by hand
+        .use_global_ca_store = false,
+        // .reconnect_timeout_ms = 20000,
+        // .network_timeout_ms = 20000
     };
 
     s_mqtt_client_manager->client_handle  = esp_mqtt_client_init(&mqtt_client_config);
@@ -88,6 +91,8 @@ static void mqtt_client_handle_mqtt_event_handler
 {
     xSemaphoreTake(g_task_sync_tools->mqtt_state_mutex, portMAX_DELAY);
 
+    fprintf(stderr, "\nmqtt handler code [%d]", event_id);
+
     // check client manager struct
     if(s_mqtt_client_manager == NULL)
     {
@@ -103,8 +108,6 @@ static void mqtt_client_handle_mqtt_event_handler
 
     case MQTT_EVENT_CONNECTED:
         // connected to broker server
-        // started mqtt client
-        SET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_STARTED);
         SET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_CONNECTED);
 
         // clear connecting state
@@ -114,16 +117,21 @@ static void mqtt_client_handle_mqtt_event_handler
     case MQTT_EVENT_DISCONNECTED:
         // clear connected state
         CLR_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_CONNECTED);
-        
+
+        // clear connected state
+        CLR_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_CONNECTING);
+
         // clear disconnecting state
         CLR_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_DISCONNECTING);
 
         goto give_sema;
     
-    case MQTT_EVENT_SUBSCRIBED:
-        // subcribed topic
-        SET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_SUBCRIBED);
+    
+    // ESPIDF using blocking to handle these state : 
+    // + MQTT_EVENT_SUBSCRIBED, MQTT_EVENT_UNSUBSCRIBED, MQTT_EVENT_PUBLISHED
+    // + Note that keep mqtt semaphore because subcribe, unsub, publish will call handler and deadlock
 
+    case MQTT_EVENT_SUBSCRIBED:
         // clear subcribing state
         CLR_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_SUBCRIBING);
         
@@ -196,7 +204,15 @@ static void mqtt_client_handle_mqtt_event_handler
         // error message
         SET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_ERROR);
         
-        // :) comming soon
+        // :) other error comming soon
+
+
+        // clear connect state, some state will auto return error, not return disconnect
+        // clear connected state
+        CLR_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_CONNECTED);
+        // clear disconnecting state
+        CLR_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_CONNECTING);
+
 
         goto give_sema;
     
@@ -252,6 +268,9 @@ _peripherals_err_t mqtt_client_handle_client_start(mqtt_client_command_state_t* 
     // set state connecting
     SET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_CONNECTING);
 
+    // started mqtt client
+    SET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_STARTED); // :)
+
     // start mqtt client
     esp_err_t ret = esp_mqtt_client_start(s_mqtt_client_manager->client_handle);
 
@@ -289,7 +308,7 @@ _peripherals_err_t mqtt_client_handle_client_reconnect(mqtt_client_command_state
 
     // check if connecting / started / connected state
     if(GET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_CONNECTING) ||
-        GET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_STARTED) ||
+        ! GET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_STARTED) ||
         GET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_CONNECTED))
     {
         #if CONFIG_DEBUG_ENABLE !=0
@@ -391,7 +410,21 @@ int mqtt_client_handle_client_subcribe_topic(const char* topic, mqtt_qos_type_t 
     // subcribe topic
     // qos = 0, 1, 2
     // get new message id subcribe
+
+    ESP_LOGI("MQTT_LIB","START SUBCRIBE FUNTION");
+
+    xSemaphoreGive(g_task_sync_tools->mqtt_state_mutex); // mqtt using client event handler -> that function give sema -> deadlock if not give now
+
     s_mqtt_client_manager->msg_id_sub = esp_mqtt_client_subscribe(s_mqtt_client_manager->client_handle, topic, qos);
+
+    xSemaphoreTake(g_task_sync_tools->mqtt_state_mutex, portMAX_DELAY);
+
+    // because wifi can't clear this bit when subcribe failed to re set and clear this now
+
+    // clear subcribing state
+    CLR_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_SUBCRIBING);
+
+    ESP_LOGI("MQTT_LIB","PASS SUBCRIBE FUNTION");
 
     // if failed return -1
     if(s_mqtt_client_manager->msg_id_sub == -1)
@@ -422,8 +455,22 @@ int mqtt_client_handle_client_publish_data(const char* topic, mqtt_qos_type_t qo
 
     // publish data
     // qos = 0, 1, 2
+    // yes like publish case we need give mutex and do some thing the same
+
+    
+    ESP_LOGI("MQTT_LIB","START PUBLISH FUNTION");
+
+    xSemaphoreGive(g_task_sync_tools->mqtt_state_mutex);
+
     s_mqtt_client_manager->msg_id_pub = 
         esp_mqtt_client_publish(s_mqtt_client_manager->client_handle, topic, data, len, qos, retain);
+
+    xSemaphoreTake(g_task_sync_tools->mqtt_state_mutex, portMAX_DELAY);
+
+    // clear publishing state
+    CLR_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_PUBLISHING);
+    
+    ESP_LOGI("MQTT_LIB","STOP PUBLISH FUNTION");
 
     // if failed return -1
     if(s_mqtt_client_manager->msg_id_pub == -1)
@@ -453,9 +500,19 @@ int mqtt_client_handle_client_un_subcribe_topic(const char* topic)
     SET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_UN_SUBCRIBING);
 
     // un subcribe topic
+    ESP_LOGI("MQTT_LIB","START UN SUB FUNTION");
+
+    xSemaphoreGive(g_task_sync_tools->mqtt_state_mutex);
+
     s_mqtt_client_manager->msg_id_unsub = 
         esp_mqtt_client_unsubscribe(s_mqtt_client_manager->client_handle, topic);
 
+    xSemaphoreTake(g_task_sync_tools->mqtt_state_mutex, portMAX_DELAY);
+
+    // clear un subcribing state
+    CLR_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_UN_SUBCRIBING);
+
+    ESP_LOGI("MQTT_LIB","STOP UN SUB FUNTION");
     
     // if failed return -1
     if(s_mqtt_client_manager->msg_id_unsub == -1)

@@ -1,3 +1,5 @@
+// this example try send 1-> 9 to http server, tested on HIVEMQ cluster
+
 // connect to MQTT Cloud using MQTT and publish a message to a topic
 
 // using linux, get the certificate:
@@ -10,9 +12,15 @@
 
 // - example using mqtts from HiveMQ server:
 // "openssl s_client -showcerts -connect 7b92f852aa7b4f20a563529b35a8bd79.s1.eu.hivemq.cloud:8883
-// </dev/null 2>/dev/null|openssl x509  -outform PEM >mqtt_eclipse_org.pem"
+// copy all cert you can see, and create a cert chain like macro below
 
 // -outform PEM > mqtt_eclipse_org.pem    // here we have certificate pem format
+
+
+
+// - example using EMQX server: 
+// + download CA from server (type crt) (hmm this CA no enough) :) ignore it , should using HIVEmq 
+
 
 /**
  * **********************************************************
@@ -38,10 +46,41 @@
 
 // MQTT
 #define MQTT_TAG "MQTT_LOG"
-#define MQTT_BROKER_URI "7b92f852aa7b4f20a563529b35a8bd79.s1.eu.hivemq.cloud:8883"
-#define MQTT_BROKER_USER "mqtt_giangtrinh"
-#define MQTT_BROKER_PASS "123abcABC"
-#define MQTT_BROKER_CERTIFICATE "-----BEGIN CERTIFICATE-----\n" \
+
+#define MQTT_BROKER_URI "mqtts://7b92f852aa7b4f20a563529b35a8bd79.s1.eu.hivemq.cloud:8883"
+
+// #define MQTT_BROKER_URI "mqtt://f577ef27.ala.us-east-1.emqxsl.com:1883"
+
+// #define MQTT_BROKER_URI "mqtt://mqtt.eclipseprojects.io"
+
+#define MQTT_BROKER_USER "mqtt_esp32"
+#define MQTT_BROKER_PASS "MQTT_esp32"
+
+#define MQTT_BROKER_EMQX_CERTIFICATE "-----BEGIN CERTIFICATE-----\n" \
+"MIIDrzCCApegAwIBAgIQCDvgVpBCRrGhdWrJWZHHSjANBgkqhkiG9w0BAQUFADBh\n" \
+"MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3\n" \
+"d3cuZGlnaWNlcnQuY29tMSAwHgYDVQQDExdEaWdpQ2VydCBHbG9iYWwgUm9vdCBD\n" \
+"QTAeFw0wNjExMTAwMDAwMDBaFw0zMTExMTAwMDAwMDBaMGExCzAJBgNVBAYTAlVT\n" \
+"MRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5j\n" \
+"b20xIDAeBgNVBAMTF0RpZ2lDZXJ0IEdsb2JhbCBSb290IENBMIIBIjANBgkqhkiG\n" \
+"9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4jvhEXLeqKTTo1eqUKKPC3eQyaKl7hLOllsB\n" \
+"CSDMAZOnTjC3U/dDxGkAV53ijSLdhwZAAIEJzs4bg7/fzTtxRuLWZscFs3YnFo97\n" \
+"nh6Vfe63SKMI2tavegw5BmV/Sl0fvBf4q77uKNd0f3p4mVmFaG5cIzJLv07A6Fpt\n" \
+"43C/dxC//AH2hdmoRBBYMql1GNXRor5H4idq9Joz+EkIYIvUX7Q6hL+hqkpMfT7P\n" \
+"T19sdl6gSzeRntwi5m3OFBqOasv+zbMUZBfHWymeMr/y7vrTC0LUq7dBMtoM1O/4\n" \
+"gdW7jVg/tRvoSSiicNoxBN33shbyTApOB6jtSj1etX+jkMOvJwIDAQABo2MwYTAO\n" \
+"BgNVHQ8BAf8EBAMCAYYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUA95QNVbR\n" \
+"TLtm8KPiGxvDl7I90VUwHwYDVR0jBBgwFoAUA95QNVbRTLtm8KPiGxvDl7I90VUw\n" \
+"DQYJKoZIhvcNAQEFBQADggEBAMucN6pIExIK+t1EnE9SsPTfrgT1eXkIoyQY/Esr\n" \
+"hMAtudXH/vTBH1jLuG2cenTnmCmrEbXjcKChzUyImZOMkXDiqw8cvpOp/2PV5Adg\n" \
+"06O/nVsJ8dWO41P0jmP6P6fbtGbfYmbW0W5BjfIttep3Sp+dWOIrWcBAI+0tKIJF\n" \
+"PnlUkiaY4IBIqDfv8NZ5YBberOgOzW6sRBc4L0na4UU+Krk2U886UAb3LujEV0ls\n" \
+"YSEY1QSteDwsOoBrp+uvFRTp2InBuThs4pFsiv9kuXclVzDAGySj4dzp30d8tbQk\n" \
+"CAUw7C29C79Fv1C5qfPrmAESrciIxpg0X40KPMbp1ZWVbd4=\n" \
+"-----END CERTIFICATE-----"
+
+#define MQTT_BROKER_HIVEMQ_CERTIFICATE \
+"-----BEGIN CERTIFICATE-----\n" \
 "MIIFPDCCBCSgAwIBAgISBlvO6+BhAYoAodu3Tizj+vEDMA0GCSqGSIb3DQEBCwUA\n" \
 "MDMxCzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBFbmNyeXB0MQwwCgYDVQQD\n" \
 "EwNSMTEwHhcNMjUwNDIyMjA1OTMwWhcNMjUwNzIxMjA1OTI5WjAfMR0wGwYDVQQD\n" \
@@ -70,7 +109,36 @@
 "y6zAjYfxMQA0uHtCSuxKk033uFkeBv1ui3XWC1JcISbsoF47RVBp/a5O3kBr+j18\n" \
 "k5qL7dWcKWr2S9JctGCH4ezYNmAG9W6w/KoTHH3HJCWrTzziJutY48Rwt4gJcS1s\n" \
 "OSV8OT5pGKVpVnKSSOz4ItIaqis6fdetTiba38lUyzjDNklYL72Ye4Ck+qvjyc33\n" \
-"-----END CERTIFICATE-----" \
+"-----END CERTIFICATE-----\n" \
+"-----BEGIN CERTIFICATE-----\n" \
+"MIIFBjCCAu6gAwIBAgIRAIp9PhPWLzDvI4a9KQdrNPgwDQYJKoZIhvcNAQELBQAw\n" \
+"TzELMAkGA1UEBhMCVVMxKTAnBgNVBAoTIEludGVybmV0IFNlY3VyaXR5IFJlc2Vh\n" \
+"cmNoIEdyb3VwMRUwEwYDVQQDEwxJU1JHIFJvb3QgWDEwHhcNMjQwMzEzMDAwMDAw\n" \
+"WhcNMjcwMzEyMjM1OTU5WjAzMQswCQYDVQQGEwJVUzEWMBQGA1UEChMNTGV0J3Mg\n" \
+"RW5jcnlwdDEMMAoGA1UEAxMDUjExMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIB\n" \
+"CgKCAQEAuoe8XBsAOcvKCs3UZxD5ATylTqVhyybKUvsVAbe5KPUoHu0nsyQYOWcJ\n" \
+"DAjs4DqwO3cOvfPlOVRBDE6uQdaZdN5R2+97/1i9qLcT9t4x1fJyyXJqC4N0lZxG\n" \
+"AGQUmfOx2SLZzaiSqhwmej/+71gFewiVgdtxD4774zEJuwm+UE1fj5F2PVqdnoPy\n" \
+"6cRms+EGZkNIGIBloDcYmpuEMpexsr3E+BUAnSeI++JjF5ZsmydnS8TbKF5pwnnw\n" \
+"SVzgJFDhxLyhBax7QG0AtMJBP6dYuC/FXJuluwme8f7rsIU5/agK70XEeOtlKsLP\n" \
+"Xzze41xNG/cLJyuqC0J3U095ah2H2QIDAQABo4H4MIH1MA4GA1UdDwEB/wQEAwIB\n" \
+"hjAdBgNVHSUEFjAUBggrBgEFBQcDAgYIKwYBBQUHAwEwEgYDVR0TAQH/BAgwBgEB\n" \
+"/wIBADAdBgNVHQ4EFgQUxc9GpOr0w8B6bJXELbBeki8m47kwHwYDVR0jBBgwFoAU\n" \
+"ebRZ5nu25eQBc4AIiMgaWPbpm24wMgYIKwYBBQUHAQEEJjAkMCIGCCsGAQUFBzAC\n" \
+"hhZodHRwOi8veDEuaS5sZW5jci5vcmcvMBMGA1UdIAQMMAowCAYGZ4EMAQIBMCcG\n" \
+"A1UdHwQgMB4wHKAaoBiGFmh0dHA6Ly94MS5jLmxlbmNyLm9yZy8wDQYJKoZIhvcN\n" \
+"AQELBQADggIBAE7iiV0KAxyQOND1H/lxXPjDj7I3iHpvsCUf7b632IYGjukJhM1y\n" \
+"v4Hz/MrPU0jtvfZpQtSlET41yBOykh0FX+ou1Nj4ScOt9ZmWnO8m2OG0JAtIIE38\n" \
+"01S0qcYhyOE2G/93ZCkXufBL713qzXnQv5C/viOykNpKqUgxdKlEC+Hi9i2DcaR1\n" \
+"e9KUwQUZRhy5j/PEdEglKg3l9dtD4tuTm7kZtB8v32oOjzHTYw+7KdzdZiw/sBtn\n" \
+"UfhBPORNuay4pJxmY/WrhSMdzFO2q3Gu3MUBcdo27goYKjL9CTF8j/Zz55yctUoV\n" \
+"aneCWs/ajUX+HypkBTA+c8LGDLnWO2NKq0YD/pnARkAnYGPfUDoHR9gVSp/qRx+Z\n" \
+"WghiDLZsMwhN1zjtSC0uBWiugF3vTNzYIEFfaPG7Ws3jDrAMMYebQ95JQ+HIBD/R\n" \
+"PBuHRTBpqKlyDnkSHDHYPiNX3adPoPAcgdF3H2/W0rmoswMWgTlLn1Wu0mrks7/q\n" \
+"pdWfS6PJ1jty80r2VKsM/Dj3YIDfbjXKdaFU5C+8bhfJGqU3taKauuz0wHVGT3eo\n" \
+"6FlWkWYtbt4pgdamlwVeZEW+LM7qZEJEsMNPrfC03APKmZsJgpWCDWOKZvkZcvjV\n" \
+"uYkQ4omYCTX5ohy+knMjdOmdH9c7SpqEWBDC86fiNex+O0XOMEZSa8DA\n" \
+"-----END CERTIFICATE-----"
 
 
 /**
@@ -90,8 +158,6 @@ static char* s_dest_ap_connect_password = NULL;
 static wifi_ap_record_t* s_wifi_record_lists = NULL;
 static uint16_t s_wifi_record_num = 0;
 
-// mqtt
-static char* s_broker_cert = NULL;// copy cert got from broker
 
 
 /**
@@ -111,6 +177,7 @@ static esp_err_t connect_handler(httpd_req_t *req);
 static void url_decode(char *dst, const char *src);
 
 
+
 /**
  * **********************************************************
  * Task
@@ -121,6 +188,8 @@ static void url_decode(char *dst, const char *src);
 static void wifi_apsta_mode_driver_manager(void* args);
 
 
+// mqtt
+static void mqtt_task(void* args);
 /**
  * **********************************************************
  * Main Codes
@@ -154,7 +223,7 @@ void app_main(void)
     ESP_LOGI(MAIN_TAG, "done setup country + wifi ap config");
 
     // start manager apsta driver
-    xTaskCreate(wifi_apsta_mode_driver_manager, "wifi apsta manager", 2048, NULL , 3 , NULL );
+    xTaskCreate(wifi_apsta_mode_driver_manager, "wifi apsta manager", 4096, NULL , 3 , NULL );
 
     // HTTP
     printf("FreeRTOS heap size: %u\n", esp_get_free_heap_size());
@@ -200,10 +269,27 @@ void app_main(void)
     ESP_LOGI(HTTP_TAG, "HTTP server is up!");
 
 
+    
     // MQTT init
-    if(mqtt_client_handle_client_init(MQTT_BROKER_URI, MQTT_BROKER_CERTIFICATE, 0, MQTT_BROKER_USER, MQTT_BROKER_PASS)) return;
+
+    // vTaskDelay(pdMS_TO_TICKS(10000)); // wait 10s
+
+    // ESP_LOGI(MQTT_TAG,"PEM: \n%s", MQTT_BROKER_EMQX_CERTIFICATE);
+    // if(mqtt_client_handle_client_init(MQTT_BROKER_URI, NULL, 0, MQTT_BROKER_USER, MQTT_BROKER_PASS)) return;
+
+    ESP_LOGI(MQTT_TAG,"PEM: \n%s", MQTT_BROKER_HIVEMQ_CERTIFICATE);
+    if(mqtt_client_handle_client_init(MQTT_BROKER_URI, MQTT_BROKER_HIVEMQ_CERTIFICATE, 0, MQTT_BROKER_USER, MQTT_BROKER_PASS)) return;
+    // if(mqtt_client_handle_client_init(MQTT_BROKER_URI, NULL, 0, MQTT_BROKER_USER, MQTT_BROKER_PASS)) return;
+
+    // ESP_LOGI(MQTT_TAG,"mqtt://mqtt.eclipseprojects.io");
+    // if(mqtt_client_handle_client_init(MQTT_BROKER_URI, NULL, 0, NULL, NULL)) return;
+
+    
+    // regist event task
     if(mqtt_client_handle_regist_receive_event_task()) return;
 
+    // start send
+    xTaskCreate(mqtt_task, "mqtt send hello", 2048, NULL , 3 , NULL );
 
 
     // main loop
@@ -252,26 +338,6 @@ void app_main(void)
  * Codes
  * **********************************************************
  */
-
-// copy cert got from broker
-static int mqtt_client_broker_cert_init(void)
-{
-    int cert_len = strlen(MQTT_BROKER_CERTIFICATE);
-
-    char* calloc_cert = calloc(cert_len + 1, sizeof(char));
-
-    if(calloc_cert == NULL)
-    {
-        return 1; // failed to alloc cert
-    }
-
-    s_broker_cert = calloc_cert;
-
-    return 0; // ok
-
-}
-
-
 //  wifi driver manager task
 static void wifi_apsta_mode_driver_manager(void* args)
 {
@@ -298,6 +364,7 @@ static esp_err_t wifi_page_handler(httpd_req_t *req)
     busy = WIFI_SETUP_COMMAND_REFUSED;
     while (busy == WIFI_SETUP_COMMAND_REFUSED) {
         if (wifi_setup_get_wifi_list_scanned(&busy, &s_wifi_record_num, &s_wifi_record_lists)) return ESP_FAIL;
+        vTaskDelay(pdMS_TO_TICKS(2000));
     }
 
     // Bắt đầu HTML response
@@ -435,19 +502,64 @@ static void url_decode(char *dst, const char *src)
 // MQTT TASK
 static void mqtt_task(void* args)
 {
-    wifi_setup_command_state_t busy = WIFI_SETUP_COMMAND_EXECUTED;
+    mqtt_client_command_state_t busy = MQTT_CLIENT_COMMAND_EXECUTED;
 
 
-    while(busy == WIFI_SETUP_COMMAND_EXECUTED)
+    if(mqtt_client_handle_client_start(&busy)) goto go_exit_mqtt_task;
+    
+    int ret = 1;
+
+    while(ret)
     {
-        if(mqtt_client_handle_client_start(&busy)) goto exit_mqtt_task;
+        // retry subcribe topic
+        ESP_LOGW(MQTT_TAG, "Try subcribe");
+
+        ret = mqtt_client_handle_client_subcribe_topic("hello esp32", MQTT_PUBSUB_QOS0);
+
+        fprintf(stderr,"\n subcribe ret: [%d]\n", ret);
+        
+        // try reconnect
+        if(mqtt_client_handle_client_reconnect(&busy)) goto go_exit_mqtt_task;
+
+
+        vTaskDelay(pdMS_TO_TICKS(2000));
     }
 
+    
+    // try send hello value
+    char num_send[10] = {0}; // <<< number int need at list 6 value to save
 
+    for(int i = 0; i< 10; i++)
+    {
+        ret = 1;
+
+        snprintf(num_send, sizeof(num_send), "%d", (int8_t)i); // auto add \0
+
+        ESP_LOGW(MQTT_TAG, "Try publish");
+
+        while(ret)
+        {
+            // retry subcribe topic
+            ret = mqtt_client_handle_client_publish_data("hello esp32", MQTT_PUBSUB_QOS0, (const char*)num_send, 0, MQTT_PUBSUB_NO_RETAIN_MSG);
+
+            // try reconnect
+            if(mqtt_client_handle_client_reconnect(&busy)) goto go_exit_mqtt_task;
+
+            vTaskDelay(pdMS_TO_TICKS(2000));
+        }
+        
+        ESP_LOGI(MQTT_TAG,"SUCCESS send hello esp32 = [%s]", num_send);
+
+        if(i < 10) ESP_LOGI(MQTT_TAG, "New message in 10s");
+
+        vTaskDelay(pdMS_TO_TICKS(10000));
+
+    }
+    
 
     // exit
 
-exit_mqtt_task:
+go_exit_mqtt_task:
     ESP_LOGW(MQTT_TAG, "Mqtt task ended !!!");
     vTaskDelete(NULL);
 }

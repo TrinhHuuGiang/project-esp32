@@ -14,6 +14,7 @@
         "platform.h": "c",
         "mqtt_msg.h": "c",
         "esp_wifi.h": "c",
-        "esp_event_base.h": "c"
+        "esp_event_base.h": "c",
+        "esp_transport_ssl.h": "c"
     }
 }
