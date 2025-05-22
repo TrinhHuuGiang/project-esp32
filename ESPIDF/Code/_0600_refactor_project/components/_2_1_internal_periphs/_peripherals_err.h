@@ -25,7 +25,9 @@
 
 typedef enum
 {
+    // GENERAL STATE
     PERIPH_OK = 0 , // << always set ok 0, alot function check if(function()) will know return ok
+    
     // I2C
     I2C_MASTER_ALLOC_FAILED,
     I2C_MASTER_SETUP_FAILED,
@@ -42,9 +44,6 @@ typedef enum
     SPI_MASTER_UN_REG_DEVICE_CONFIG_FAILED,
     SPI_MASTER_UN_INS_CONFIG_BUS_FAILED,
     SPI_MASTER_POLLING_TRANSACTION_FAILED,
-
-    // I2S
-
 
     // GPIO
     GPIO_SETUP_SET_DIRECT_FAILED,
@@ -79,8 +78,11 @@ typedef enum
     MCPWM_SETUP_INIT_SET_DEADTIME_EN_FAILED,
     MCPWM_SETUP_INIT_SET_DEADTIME_DIS_FAILED,
 
+
     // ADC
 
+    // I2S
+    
 
     // Wifi
     WIFI_SETUP_INIT_NVS_FLASH_FAILED,

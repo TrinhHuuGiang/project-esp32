@@ -1,4 +1,4 @@
-menu "DEV_____IO_device_config_74HC165_input_logic"
+menu "DEV_____Peripherals_external_74HC165_input_logic"
 
 config GPIO_74HC165_LATCH_PIN
     int "generate pwm signal for latch"

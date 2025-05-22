@@ -28,7 +28,7 @@
 
 #define SPI_SD_CARD_ROOT_PATH_STRING      "/sd_card0" // name represent for sdcard mounted
 
-#define SPI_SD_CARD_MAX_FILE_OPEN         (5)
+#define SPI_SD_CARD_MAX_FILE_OPEN         (10)        // Not find any document say about limit :) i think 10 is good limit
 
 
 #if SPI_MASTER_CLOCK_FREQ_10M <= SPI_MASTER_LIMIT_FREQ_GPIO_MATRIX      // set limit clock for sd_card spi interface . max 10M
