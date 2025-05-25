@@ -1,5 +1,8 @@
 // note that the spi module must config before using this library
 // this lib will interact with sd card and using pin 5 as default CS
+
+// modify comming soon , chip select now control by 74hc595
+
 #ifndef _SPI_SD_CARD_H_
 #define _SPI_SD_CARD_H_
 

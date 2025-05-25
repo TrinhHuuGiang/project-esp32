@@ -87,6 +87,9 @@ int input_delay_ns, uint32_t flags
         #if CONFIG_DEBUG_ENABLE !=0
         send_peripheral_err_location(SPI_MASTER_DEVICE_CLK_OVER_FREQ, __FILE__, __LINE__, "over maximum spi frequency");
         #endif
+
+        free(*device_conf_addr);
+        *device_conf_addr = NULL;
         return SPI_MASTER_DEVICE_CLK_OVER_FREQ;
     }
 

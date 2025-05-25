@@ -1,6 +1,9 @@
 // this library code for series 4 ic 74hc165 to expand input signal to 32 pin
 // available for : push button, keypad, and another logic signals have short temporary status change
 
+
+// modify comming soon: hint gpio_74hc165_data_t and typedef enum and API to read any bit of register
+
 #ifndef _GPIO_74HC165_H_
 #define _GPIO_74HC165_H_
 
@@ -25,7 +28,7 @@
 
 #define GPIO_74HC165_LEDC_TIMER_CLOCK          LEDC_TIMER_0
 #define GPIO_74HC165_LEDC_CHANNEL_CLOCK        LEDC_CHANNEL_0
-#define GPIO_74HC165_LEDC_FREQ_CLOCK           (1000000)
+#define GPIO_74HC165_LEDC_FREQ_CLOCK           (1000000)      // 3.3V logic - 1MHz
 #define GPIO_74HC165_LEDC_RESOLUTION_CLOCK     (1)
 #define GPIO_74HC165_LEDC_DUTY_CLOCK           (1U) // 0 == 0%, 1 == 50%
 #define GPIO_74HC165_CLOCK_PIN                 CONFIG_GPIO_74HC165_CLOCK_PIN

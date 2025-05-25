@@ -56,7 +56,7 @@
     - `List designed`: Coming soon
     - `Coming soon`:
         - `System driver`: update, sleep, reset factory
-        - `Widget driver`: Network, Timer, Read/Write file, Display, Speaker player
+        - `Widget driver`: Network, Timer, Read/Write file, Display, Speaker player, Email
 - Layer 4_1_2:
     - [External drivers]
         - *Compulsory:*
