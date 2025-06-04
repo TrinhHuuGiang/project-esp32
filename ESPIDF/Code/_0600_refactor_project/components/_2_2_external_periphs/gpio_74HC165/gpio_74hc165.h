@@ -2,7 +2,21 @@
 // available for : push button, keypad, and another logic signals have short temporary status change
 
 
-// modify comming soon: hint gpio_74hc165_data_t and typedef enum and API to read any bit of register
+// modify comming soon: 
+// + hint gpio_74hc165_data_t and typedef enum and API to read any bit of register
+// + no use pwm driver, replace with API read and pooling driver
+//      + advantage: 
+//          - driver read new data 74hc595 series and update register (mutex lock) 
+//          after a period of programming
+//          - No pooling or continuous interrupt required
+//          - Don't need pull each input get 74hc565 (keep idle state)
+//          - Driver help user get newest value with less waiting time 
+//              by only read update register
+//              than using callback read API (shift, latch, update)
+//          - reduced complexity compared to using interrupts and pwm
+//      + disadvantage:
+//          - Driver needs to read data and blocking takes a long time
+//          - increase queuing delay if many requests
 
 #ifndef _GPIO_74HC165_H_
 #define _GPIO_74HC165_H_

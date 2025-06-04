@@ -23,7 +23,7 @@ _peripherals_err_t ledc_setup_timer_config(ledc_timer_t timer_order_num, uint32_
         .duty_resolution = ledc_resolution,
         .timer_num = timer_order_num,
         .freq_hz = ledc_freq_hz, //Hz
-        .clk_cfg = LEDC_AUTO_CLK
+        .clk_cfg = LEDC_AUTO_CLK // some time we need 50Hz for servo, auto chose REF_TICK instead of APB_CLOCK 
     };
 
     esp_err_t ret = ledc_timer_config(&timer_conf);

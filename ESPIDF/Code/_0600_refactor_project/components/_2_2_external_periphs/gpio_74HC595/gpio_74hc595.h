@@ -5,7 +5,7 @@
 
 
 // update comming soon: reverse output flag ( depend on design, we want 
-// implement by little endian or big endian )
+// implement order by High index to low index or reverse)
 
 #ifndef _GPIO_74HC565_H_
 #define _GPIO_74HC565_H_

@@ -16,11 +16,17 @@
 #include "stdint.h"
 
 // Handle risk of deadlock at layer `internal peripherals`:
-// - To avoid deadlock at layer `Internal Pheriph`, mutex of these peripheral
+// - Solution 1: To avoid deadlock at layer `Internal Pheriph`, mutex of these peripheral
 // have been design working in API and release when out API.
-// - Any tasks call 1 (the same) API will block untill first talk run API success.
-// - Nerver reach case: call 2 `Internal Pheriph mutex` at a time <= thread safe
+//      + Any tasks call 1 (the same) API will block untill first talk run API success.
+//      + Nerver reach case: call 2 `Internal Pheriph mutex` at a time <= thread safe
 
+// - Solution 2: 1 API get + 1 API release mutex -> reduce Reduced complexity of 
+// synchronization management but more frequency call get/ release
+//
+// => chose solution 1, just design mutex in function handle, user no need 
+//    to worry about when and which function should use mutex
+//
 // Other case: 
 // - Avoid design 'nested mutex locking' by order mutex between task is the same form
 // - Avoid design 'recursive mutex locking' by only call 1 mutex in a function
