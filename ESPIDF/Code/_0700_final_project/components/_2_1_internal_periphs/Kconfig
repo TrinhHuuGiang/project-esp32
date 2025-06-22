@@ -1,0 +1,114 @@
+menu "DEV_____Peripherals_internal"
+
+config DEBUG_ENABLE
+    bool "Enable serial debug printing"
+    default y
+
+config ADC_INPUT_CHANNEL
+    int "default unique adc input channel"
+    default 6
+    help
+        default adc1 channel 6 at gpio 34
+
+config I2C_MASTER_PORT_NUMBER
+    int "I2C port for master mode"
+    default 0
+    range 0 1
+    help
+        esp32 support 2 port, choose 0 (port0) or 1 (port1)
+
+config I2C_MASTER_PORT_CLOCK
+    int "I2C clock for master port"
+    default 100000
+    range 100000 1000000
+    help
+        I2C maximum frequency 1Mhz, standard 100kHz
+
+config I2C_MASTER_SDA_PIN
+    int "I2C master sda pin"
+    default 21
+    help
+        esp32 default SDA pin 21
+
+config I2C_MASTER_SDA_PULLUP_EN
+    int "I2C master sda pull-up enable"
+    default 1
+    range 0 1
+    help
+        pull-up SDA (input 1) if you need  
+
+config I2C_MASTER_SCL_PIN
+    int "I2C master scl pin"
+    default 22
+    help
+        esp32 default SCL pin 22
+
+config I2C_MASTER_SCL_PULLUP_EN
+    int "I2C master scl pull-up enable"
+    default 1
+    range 0 1
+    help
+        pull-up SCL (input 1) if you need  
+
+
+
+config SPI_MASTER_PORT_NUMBER
+    int "choose SPI peripherals" 
+    default 2
+    range 1 2
+    help
+        SPI2 (1) and SPI3 (2) are general purpose SPI controllers, sometimes referred to as HSPI and VSPI
+
+config SPI_MASTER_MOSI_PIN
+    int "SPI master mosi pin"
+    default 23
+    help
+        default mosi of VSPI on esp32 is GPIO23
+
+config SPI_MASTER_MISO_PIN
+    int "SPI master miso pin"
+    default 19
+    help
+        default MISO of VSPI on esp32 is GPIO19
+
+config SPI_MASTER_SCLK_PIN
+    int "SPI master sclk pin"
+    default 18
+    help
+        default MISO of VSPI on esp32 is GPIO18
+
+config SPI_MASTER_LIMIT_FREQ_GPIO_MATRIX 
+    int "SPI master limit maximum frequency"
+    default 10000000
+    range 1000000 27000000
+    help
+        set maximum to warn admin limit device frequency.
+        When input delay time > 100ns, maximum frequency should < 8Mhz.
+        When input delay time = 0ns, maximum frequency is 26,67Mhz
+
+
+choice ESP_WIFI_SCAN_AUTH_MODE_THRESHOLD
+    prompt "WiFi Scan auth mode threshold"
+    default ESP_WIFI_AUTH_OPEN
+    help
+        The weakest authmode to accept in the scan mode.
+
+    config ESP_WIFI_AUTH_OPEN
+        bool "OPEN"
+    config ESP_WIFI_AUTH_WEP
+        bool "WEP"
+    config ESP_WIFI_AUTH_WPA_PSK
+        bool "WPA PSK"
+    config ESP_WIFI_AUTH_WPA2_PSK
+        bool "WPA2 PSK"
+    config ESP_WIFI_AUTH_WPA_WPA2_PSK
+        bool "WPA/WPA2 PSK"
+    config ESP_WIFI_AUTH_WPA3_PSK
+        bool "WPA3 PSK"
+    config ESP_WIFI_AUTH_WPA2_WPA3_PSK
+        bool "WPA2/WPA3 PSK"
+    config ESP_WIFI_AUTH_WAPI_PSK
+        bool "WAPI PSK"
+endchoice
+
+endmenu

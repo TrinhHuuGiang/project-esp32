@@ -47,7 +47,15 @@
     #define SPI_SD_CARD_CLOCK_SPEED SPI_MASTER_CLOCK_FREQ_1M
 #endif
 
-
+/**
+ * **********************************************************
+ * Sync
+ * 
+ * some function below thread safe use 
+ * + void take_spi_master_mutex();
+ * + void release_spi_master_mutex();
+ * **********************************************************
+ */
 
 
 
@@ -75,9 +83,11 @@ uint8_t spi_sd_card_mount_vfs_with_fatfs_on_card(sdmmc_card_t** out_card);
  * @brief Step2: using <stdio> and posix to read, write to card
  */
 
-// interract by C and POSIX
+// Before always: take_spi_master_mutex()
 
+// interract by C (stdio.h) and POSIX
 
+// After always: release_spi_master_mutex()
 
 
 //============================== Disconnect and clean========== ==============================

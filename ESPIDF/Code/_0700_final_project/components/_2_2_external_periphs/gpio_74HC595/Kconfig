@@ -1,0 +1,10 @@
+menu "DEV_____Peripherals_external_74HC565_output_logic"
+
+config GPIO_74HC595_LATCH_PIN
+    int "generate signal for latch"
+    default 5
+    help
+        GPIO CS SPI, using control latch 74HC565
+
+
+endmenu

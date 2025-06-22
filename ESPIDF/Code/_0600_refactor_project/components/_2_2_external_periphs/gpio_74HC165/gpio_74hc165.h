@@ -17,6 +17,14 @@
 //      + disadvantage:
 //          - Driver needs to read data and blocking takes a long time
 //          - increase queuing delay if many requests
+// + Fully rtos -> no use esp_rom_delay_us -> use vTaskDelay(pdMS_TO_TICKS(1));
+//       + advantage:
+//          - reduce hanging another peripheral
+//       + disadvantage:
+//          - delay time minimum 'ms' , but esp_rom_delay_us can keep core busy waiting 'us'
+//       + solution: never stop driver, loop infinity
+//          because (each time driver read a bit, it was sleep some ms)
+
 
 #ifndef _GPIO_74HC165_H_
 #define _GPIO_74HC165_H_

@@ -1,0 +1,14 @@
+{
+    "files.associations": {
+        "stdlib.h": "c",
+        "ledc_setup_handle.h": "c",
+        "spi_master_handle.h": "c",
+        "gpio_setup_handle.h": "c",
+        "esp_intr_alloc.h": "c",
+        "_peripherals_err.h": "c",
+        "i2c.h": "c",
+        "adc.h": "c",
+        "esp_log.h": "c",
+        "adc1_setup_handle.h": "c"
+    }
+}

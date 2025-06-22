@@ -17,8 +17,8 @@
     - [External peripherals]
         - External peripherals extend the capabilities of `internal peripherals`
         - Using `Task sync tools` and is called by upper layer devices `Layer 3` when communication with external peripherals is required.
-    - `List designed`: 74HC165
-    - `Coming soon`: 74HC565, 74HC4067, rs485, i2s_max98537
+    - `List designed`: 74HC165, 74HC595
+    - `Coming soon`: 74HC4067, rs485, i2s_max98537
 - Layer 2_3:
     - [Internal devices]
         - These are add-on devices that extend the capabilities of the microcontroller
@@ -28,15 +28,15 @@
             - Internal devices can register some special things of `peripherals`, avoid register the same things have been used.
             - These device design for general purpose of User define driver `Layer 4_1_2` and should manage by `Widget driver` of layer `4_1_1`
             - Although these devices can be access by any driver but only one `Widget driver` manage interact with these device reduce conflict risk when multiple drivers are involved in controlling the device
-    - `List designed`: ssd1306, spi_sd_card
-    - `Coming soon`: :v nothing now, missing ds3231
+    - `List designed`: ssd1306, spi_sd_card, ds3231
+    - `Coming soon`: :v nothing now 
 - Layer 2_4:
     - [Network application protocol]
         - *Note:* initialize wifi before launch application protocols
         - Initialize drivers that launch network protocols
         - Using `Task sync tools` and is called by special drivers for each protocol at `Layer 4_1_1` when communication with network is required.
     - `List designed`: HTTP, MQTT
-    - `Coming soon`: ModbusRTU
+    - `Coming soon`: ModbusRTU, SNTP
 ## Layer 3: **User define IO devices**
 - [External devices]
     - These are `user defined` devices.
@@ -47,7 +47,7 @@
 - `List designed`: Coming soon
 - `Coming soon`: :v nothing now
 ## Layer 4: **Initiate Controller drivers and User define drivers**
-- Layer 4_1_1:
+- Layer 4_1:
     - [Internal drivers]
         - These drivers manage network and container, timer, maintain and reset, clean & reset factory MCU
         - Communicate with `External driver` asynchronous or synchronous through container structures in `Layer 1`
@@ -57,7 +57,7 @@
     - `Coming soon`:
         - `System driver`: update, sleep, reset factory
         - `Widget driver`: Network, Timer, Read/Write file, Display, Speaker player, Email, Real time update
-- Layer 4_1_2:
+- Layer 4_2:
     - [External drivers]
         - *Compulsory:*
             - Handle communicate with `Internal drivers` at `Layer 4_1_1`
@@ -84,7 +84,7 @@
             - System driver:
                 - Maintain system driver ( update, sleep, reset factory )
             - Widget driver:
-                - Timer driver ( scheduling with clock device )
+                - Timer driver ( scheduling with clock device, update rtc with sntp)
                 - Network driver (implement protocol - Application layer in TCP/IP model)
                 - Speaker player driver
                     - Check `Read/Write file driver` before run file
@@ -93,12 +93,12 @@
                     - *Note:*
                         - File play back must be existed
                         - SPI_SD_CARD_MAX_FILE_OPEN limit number file can open at the same time
-                - Read/Write file driver
+                - Read/Write file driver (cut off)
                     - Check `speaker driver` before write to file (fail if file be using)
                     - Only read/write at the same time because SPI_SD_CARD_MAX_FILE_OPEN limit number file can open at the same time
                 - Display driver
                     - Display performance ( RAM / log %, bar )
                     - Print new debug (time / error log)
         - Initialize external control driver
-            - User define
+            - User define logic code blocks
     - Loop waiting / blocked until end signal from special internal system driver
