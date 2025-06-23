@@ -1,4 +1,6 @@
 // Only using ADC1. ADC2 can't be used when Wi-Fi is active
+// using this library for 74hc4067.
+
 #ifndef _ADC1_SETUP_HANDLE_H_
 #define _ADC1_SETUP_HANDLE_H_
 
@@ -22,7 +24,7 @@
 #include "_peripherals_err.h"
 
 // ADC channel config
-#define ADC1_SETUP_CHANNEL          CONFIG_ADC_INPUT_CHANNEL  // e.g., ADC1_CH6 -> GPIO34
+#define ADC1_SETUP_CHANNEL          CONFIG_ADC_INPUT_CHANNEL  // (hardware fixed) ADC1_CH6 -> GPIO34
 #define ADC1_SETUP_STABLE_MS        10  // wait before read (ms), must be >= 10
 
 #define ADC1_SETUP_RESOLUTION       ADC_WIDTH_BIT_12  // 9–12 bits
@@ -30,7 +32,7 @@
 
 // Attenuation 11dB: linear range ≈ 150 mV to 2450 mV
 #define ADC1_SETUP_VOFFSET_MV       150
-#define ADC1_SETUP_VRANGE_MV        (2450 - ADC_SETUP_VOFFSET_MV)  // 2300 mV
+#define ADC1_SETUP_VRANGE_MV        (2450 - ADC1_SETUP_VOFFSET_MV)  // 2300 mV
 
 
 
@@ -46,7 +48,7 @@
 // get periph mutex
 void take_adc1_mutex();
 
-// get periph mutex
+// release periph mutex
 void release_adc1_mutex();
 
 
@@ -66,6 +68,7 @@ void adc1_setup_init_atten11dB(void);
 /**
  * Get raw ADC value.
  * @return Value from 0 to 4095 if width = 12 bits.
+ * @retval -1 if cant read
  */
 int adc1_setup_read_raw_atten11dB(void);
 
@@ -75,6 +78,7 @@ int adc1_setup_read_raw_atten11dB(void);
  * If input voltage > 2.45V, result will be clipped to 2450 mV.
  *
  * @return Voltage in millivolts (150 – 2450 mV)
+ * @retval -1 if cant read
  */
 int adc1_setup_read_voltage_atten11dB(void);
 

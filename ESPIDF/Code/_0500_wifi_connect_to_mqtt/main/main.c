@@ -81,34 +81,34 @@
 
 #define MQTT_BROKER_HIVEMQ_CERTIFICATE \
 "-----BEGIN CERTIFICATE-----\n" \
-"MIIFPDCCBCSgAwIBAgISBlvO6+BhAYoAodu3Tizj+vEDMA0GCSqGSIb3DQEBCwUA\n" \
+"MIIFGTCCBAGgAwIBAgISBaqloO5vxdiSSC7liQ/LIpF4MA0GCSqGSIb3DQEBCwUA\n" \
 "MDMxCzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBFbmNyeXB0MQwwCgYDVQQD\n" \
-"EwNSMTEwHhcNMjUwNDIyMjA1OTMwWhcNMjUwNzIxMjA1OTI5WjAfMR0wGwYDVQQD\n" \
+"EwNSMTEwHhcNMjUwNjIxMjAwNDQ3WhcNMjUwOTE5MjAwNDQ2WjAfMR0wGwYDVQQD\n" \
 "DBQqLnMxLmV1LmhpdmVtcS5jbG91ZDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCC\n" \
 "AQoCggEBAKVuz2sMPmxx2w/f81/YAEKTbNZMJPk2+ooLFg5hxXvReF+AwIT4XvZ+\n" \
 "MLhSKvFxmghJF+BB9WyhqrcJLGDCP4s6SOLWTYixEoTcaLUviqqn+06kYqDJ6E83\n" \
 "NGsc7T42DlPnzqcZZjPRed9rt4CP3RgeZlWyYZgiD8FoJG9gie8ytihF/FkGZT8T\n" \
 "N4Vkl2vQa3mfBWeeKrcuhcLPxqIWDz/30iYfLtEe5JYYScoCKTXcP9SUStjpR8pD\n" \
 "vfOWdvasOAuBy7yBbx01/4lcQt50hfbhTR/K14/D4rNkuuvU7ktSQnoxVXC8YDwG\n" \
-"zkny10DFt65mVYLNZcBQtOLHHOZGV30CAwEAAaOCAlwwggJYMA4GA1UdDwEB/wQE\n" \
+"zkny10DFt65mVYLNZcBQtOLHHOZGV30CAwEAAaOCAjkwggI1MA4GA1UdDwEB/wQE\n" \
 "AwIFoDAdBgNVHSUEFjAUBggrBgEFBQcDAQYIKwYBBQUHAwIwDAYDVR0TAQH/BAIw\n" \
 "ADAdBgNVHQ4EFgQUgsEjDU35+EWJKBsFxJ0lM0PXMi4wHwYDVR0jBBgwFoAUxc9G\n" \
-"pOr0w8B6bJXELbBeki8m47kwVwYIKwYBBQUHAQEESzBJMCIGCCsGAQUFBzABhhZo\n" \
-"dHRwOi8vcjExLm8ubGVuY3Iub3JnMCMGCCsGAQUFBzAChhdodHRwOi8vcjExLmku\n" \
-"bGVuY3Iub3JnLzAzBgNVHREELDAqghQqLnMxLmV1LmhpdmVtcS5jbG91ZIISczEu\n" \
-"ZXUuaGl2ZW1xLmNsb3VkMBMGA1UdIAQMMAowCAYGZ4EMAQIBMC0GA1UdHwQmMCQw\n" \
-"IqAgoB6GHGh0dHA6Ly9yMTEuYy5sZW5jci5vcmcvNC5jcmwwggEFBgorBgEEAdZ5\n" \
-"AgQCBIH2BIHzAPEAdgAN4fIwK9MNwUBiEgnqVS78R3R8sdfpMO8OQh60fk6qNAAA\n" \
-"AZZfgg0JAAAEAwBHMEUCIQCENUD4FWITFwnyxsOr4D54wR+LUgZyEjwMd+GwHiha\n" \
-"agIgOdeXyofPYtzl2DajwNvR+6XbCikAbbQvZTZ4Eahu2coAdwDM+w9qhXEJZf6V\n" \
-"m1PO6bJ8IumFXA2XjbapflTA/kwNsAAAAZZfghU/AAAEAwBIMEYCIQDu8/zVPYFl\n" \
-"bmd1vt5Fqk0sXJLV+MEFhQH75Kn6jlvtFgIhAOA8DAE1QBWXxmYSyFXw9UvC4EvH\n" \
-"4+VR1cA8merS5vl4MA0GCSqGSIb3DQEBCwUAA4IBAQBVET3hPDZX/protLVPy/vX\n" \
-"4i41k5J3teGokrEMu/TdMN6i/W7555Vsgl1zXj5a1f+4FsQ2Nfh1sDMuz/Djzgxp\n" \
-"M8HMifB5HJTX+slAuElLzlQFCxMVNn3+b4BgpxvwA3srrXGudF3cya0qztg5lNju\n" \
-"y6zAjYfxMQA0uHtCSuxKk033uFkeBv1ui3XWC1JcISbsoF47RVBp/a5O3kBr+j18\n" \
-"k5qL7dWcKWr2S9JctGCH4ezYNmAG9W6w/KoTHH3HJCWrTzziJutY48Rwt4gJcS1s\n" \
-"OSV8OT5pGKVpVnKSSOz4ItIaqis6fdetTiba38lUyzjDNklYL72Ye4Ck+qvjyc33\n" \
+"pOr0w8B6bJXELbBeki8m47kwMwYIKwYBBQUHAQEEJzAlMCMGCCsGAQUFBzAChhdo\n" \
+"dHRwOi8vcjExLmkubGVuY3Iub3JnLzAzBgNVHREELDAqghQqLnMxLmV1LmhpdmVt\n" \
+"cS5jbG91ZIISczEuZXUuaGl2ZW1xLmNsb3VkMBMGA1UdIAQMMAowCAYGZ4EMAQIB\n" \
+"MC8GA1UdHwQoMCYwJKAioCCGHmh0dHA6Ly9yMTEuYy5sZW5jci5vcmcvMTIxLmNy\n" \
+"bDCCAQQGCisGAQQB1nkCBAIEgfUEgfIA8AB2AH1ZHhLheCp7HGFnfF79+NCHXBSg\n" \
+"TpWeuQMv2Q6MLnm4AAABl5RNhOEAAAQDAEcwRQIgAf+kVUOmxv3UirbbVVMLAXOy\n" \
+"m4pgCbXdiExwkjdaXtICIQCD9UaaxhEsz+wWtKpT4rJ3TM3PguTcVf+9z8GTrkx1\n" \
+"FwB2AA3h8jAr0w3BQGISCepVLvxHdHyx1+kw7w5CHrR+Tqo0AAABl5RNhOMAAAQD\n" \
+"AEcwRQIgR0CLW5EQOZNUUCPZ2/xnKRbm3KcG15tQ8vqz4rodo5sCIQCOoGJEIQlz\n" \
+"6U9y6Kz4NUfSZSOP4hKcIcdy8VSfAP3h4TANBgkqhkiG9w0BAQsFAAOCAQEAHkJ4\n" \
+"fVx13a67jX/pPkl42NJ5lEXWKYBjBImiZSzG3NdOEOGpE6amkqwk5dKKmLBbxkYd\n" \
+"KKCdu67vymdiE3OQjc2S/sjWW4SXit2g7qV1wds05cKzT80czkgJlqkwJxhAJuGz\n" \
+"HsUcFH30DWDiCngV2bZ5uyH8V5COyQf6FXsUHCO25R23JWfWsBc8GNhJ6Aa3S0Jm\n" \
+"j0+YEl7GemEfOcmyAzw7gMPRYj708cg8r1ujbeEceXZ8iN8dUDM1NCTUrOWmEebh\n" \
+"c4RHAbpx5uUI8LTotfs3vt691irE+vJFZWT8uzDygFvF0W4/IjQOgIMjaGb5eGJU\n" \
+"c8fnEXFoMFube/Kmng==\n" \
 "-----END CERTIFICATE-----\n" \
 "-----BEGIN CERTIFICATE-----\n" \
 "MIIFBjCCAu6gAwIBAgIRAIp9PhPWLzDvI4a9KQdrNPgwDQYJKoZIhvcNAQELBQAw\n" \
@@ -138,7 +138,7 @@
 "pdWfS6PJ1jty80r2VKsM/Dj3YIDfbjXKdaFU5C+8bhfJGqU3taKauuz0wHVGT3eo\n" \
 "6FlWkWYtbt4pgdamlwVeZEW+LM7qZEJEsMNPrfC03APKmZsJgpWCDWOKZvkZcvjV\n" \
 "uYkQ4omYCTX5ohy+knMjdOmdH9c7SpqEWBDC86fiNex+O0XOMEZSa8DA\n" \
-"-----END CERTIFICATE-----"
+"-----END CERTIFICATE-----\n"
 
 
 /**
@@ -154,9 +154,6 @@ static wifi_manager_apsta_mode_t* s_apsta_driver_manager = NULL;
 
 static char* s_dest_ap_connect_ssid = NULL;
 static char* s_dest_ap_connect_password = NULL;
-
-static wifi_ap_record_t* s_wifi_record_lists = NULL;
-static uint16_t s_wifi_record_num = 0;
 
 
 
@@ -348,81 +345,93 @@ static void wifi_apsta_mode_driver_manager(void* args)
 }
 
 
-
 static esp_err_t wifi_page_handler(httpd_req_t *req)
 {
-    // Scan và lấy danh sách WiFi
+    wifi_ap_record_t* s_wifi_record_lists = NULL;
+    uint16_t s_wifi_record_num = 0;
     wifi_setup_command_state_t busy = WIFI_SETUP_COMMAND_EXECUTED;
-    
-    // Scan ít nhất 1 lần thành công
-    while (busy == WIFI_SETUP_COMMAND_EXECUTED) {
-        if (wifi_setup_start_scan_wifi(&busy)) return ESP_FAIL;
-        vTaskDelay(pdMS_TO_TICKS(2000));
-    }
 
-    // Lấy danh sách
-    busy = WIFI_SETUP_COMMAND_REFUSED;
-    while (busy == WIFI_SETUP_COMMAND_REFUSED) {
-        if (wifi_setup_get_wifi_list_scanned(&busy, &s_wifi_record_num, &s_wifi_record_lists)) return ESP_FAIL;
-        vTaskDelay(pdMS_TO_TICKS(2000));
-    }
+    ESP_LOGI("wfpage", "Scanning...");
+    if (wifi_setup_start_scan_wifi(&busy)) return ESP_FAIL;
 
-    // Bắt đầu HTML response
+    if (busy == WIFI_SETUP_COMMAND_REFUSED)
+        ESP_LOGW("wfpage", "Scan refused");
+    else
+        vTaskDelay(pdMS_TO_TICKS(5000));
+
+    ESP_LOGI("wfpage", "Getting scan results...");
+    if (wifi_setup_get_wifi_list_scanned(&busy, &s_wifi_record_num, &s_wifi_record_lists)) return ESP_FAIL;
+
     httpd_resp_sendstr_chunk(req,
         "<!DOCTYPE html><html><head><title>WiFi Config</title></head><body>"
         "<h2>Select WiFi and Enter Password</h2>"
         "<form method=\"POST\" action=\"/connect\">"
         "WiFi List: <select name=\"index\">");
 
-    // Gửi từng option tương ứng với mạng WiFi
     for (int i = 0; i < s_wifi_record_num; ++i) {
-        char option[128];
-        snprintf(option, sizeof(option),
+        char entry[256];
+        snprintf(entry, sizeof(entry),
             "<option value=\"%d\">%s (RSSI: %d)</option>",
             i, (char*)s_wifi_record_lists[i].ssid, s_wifi_record_lists[i].rssi);
-        httpd_resp_sendstr_chunk(req, option);
+        httpd_resp_sendstr_chunk(req, entry);
     }
 
-    // Gửi phần còn lại của form
+    httpd_resp_sendstr_chunk(req, "</select><br><br>");
+
+    for (int i = 0; i < s_wifi_record_num; ++i) {
+        char hidden[300];
+        char bssid_str[18];
+        snprintf(bssid_str, sizeof(bssid_str),
+            "%02X:%02X:%02X:%02X:%02X:%02X",
+            s_wifi_record_lists[i].bssid[0], s_wifi_record_lists[i].bssid[1], s_wifi_record_lists[i].bssid[2],
+            s_wifi_record_lists[i].bssid[3], s_wifi_record_lists[i].bssid[4], s_wifi_record_lists[i].bssid[5]);
+
+        snprintf(hidden, sizeof(hidden),
+            "<input type=\"hidden\" name=\"bssid%d\" value=\"%s\">"
+            "<input type=\"hidden\" name=\"ssid%d\" value=\"%s\">",
+            i, bssid_str, i, (char*)s_wifi_record_lists[i].ssid);
+        httpd_resp_sendstr_chunk(req, hidden);
+    }
+
     httpd_resp_sendstr_chunk(req,
-        "</select><br><br>"
-        "Password: <input type=\"password\" name=\"password\" required><br><br>"
+        "<br>Password: <input type=\"password\" name=\"password\" required><br><br>"
         "<input type=\"submit\" value=\"Connect\">"
         "</form></body></html>");
 
     httpd_resp_sendstr_chunk(req, NULL); // Kết thúc
+
+    if (s_wifi_record_lists != NULL) free(s_wifi_record_lists);
     return ESP_OK;
 }
+
 
 
 
 // Hàm handler để nhận SSID và Password gửi lên
 static esp_err_t connect_handler(httpd_req_t *req)
 {
-    char buf[256];
+    char buf[512];
     int ret = httpd_req_recv(req, buf, sizeof(buf) - 1);
     if (ret <= 0) {
         httpd_resp_send_500(req);
         return ESP_FAIL;
     }
-
     buf[ret] = '\0';
-    ESP_LOGI(HTTP_TAG, "Received POST data: %s", buf);
+    ESP_LOGI("POST", "Received: %s", buf);
 
-    // Biến tạm
     int index = -1;
     char password[64] = {0};
+    char ssid[33] = {0};
+    char bssid_str[20] = {0};
 
-    // Parse form-urlencoded: index=2&password=abc123
     char *token = strtok(buf, "&");
-    while (token != NULL) {
+    while (token) {
         char *equal = strchr(token, '=');
         if (equal) {
             *equal = '\0';
             char *key = token;
             char *value = equal + 1;
 
-            // Giải mã URL
             char decoded[128];
             url_decode(decoded, value);
 
@@ -430,33 +439,36 @@ static esp_err_t connect_handler(httpd_req_t *req)
                 index = atoi(decoded);
             } else if (strcmp(key, "password") == 0) {
                 strncpy(password, decoded, sizeof(password) - 1);
+            } else if (strncmp(key, "bssid", 5) == 0) {
+                int bssid_idx = atoi(key + 5);
+                if (bssid_idx == index) {
+                    strncpy(bssid_str, decoded, sizeof(bssid_str) - 1);
+                }
+            } else if (strncmp(key, "ssid", 4) == 0) {
+                int ssid_idx = atoi(key + 4);
+                if (ssid_idx == index) {
+                    strncpy(ssid, decoded, sizeof(ssid) - 1);
+                }
             }
         }
         token = strtok(NULL, "&");
     }
 
-    // Kiểm tra index hợp lệ
-    if (index < 0 || index >= s_wifi_record_num) {
-        httpd_resp_sendstr(req, "Invalid WiFi index.");
+    if (index < 0 || strlen(ssid) == 0 || strlen(bssid_str) < 17) {
+        httpd_resp_sendstr(req, "Invalid data submitted.");
         return ESP_FAIL;
     }
 
-    // Lấy thông tin mạng đã chọn
-    uint8_t *ssid = (uint8_t *)s_wifi_record_lists[index].ssid;
-    uint8_t *bssid = s_wifi_record_lists[index].bssid;
+    uint8_t bssid[6];
+    sscanf(bssid_str, "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx",
+           &bssid[0], &bssid[1], &bssid[2], &bssid[3], &bssid[4], &bssid[5]);
 
+    ESP_LOGI("POST", "SSID: %s", ssid);
+    ESP_LOGI("POST", "Password: %s", password);
+    ESP_LOGI("POST", "BSSID: %s", bssid_str);
 
-    // free list for next scan
-    free(s_wifi_record_lists);
-    s_wifi_record_lists = NULL;
-
-    // Có thể in ra để kiểm tra
-    ESP_LOGI(HTTP_TAG, "Selected SSID: %s", ssid);
-    ESP_LOGI(HTTP_TAG, "Password: %s", password);
-
-    // Gọi cấu hình WiFi
-    if (wifi_setup_set_wifi_sta_config(ssid, (uint8_t *)password, bssid)) {
-        httpd_resp_sendstr(req, "Failed to connect to selected WiFi.");
+    if (wifi_setup_set_wifi_sta_config((uint8_t *)ssid, (uint8_t *)password, bssid)) {
+        httpd_resp_sendstr(req, "Failed to connect to WiFi.");
     } else {
         httpd_resp_sendstr(req, "WiFi configuration updated successfully.");
     }

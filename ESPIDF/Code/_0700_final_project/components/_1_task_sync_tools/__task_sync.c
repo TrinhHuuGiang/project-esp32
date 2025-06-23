@@ -65,7 +65,12 @@ init_tasksync_t task_sync_tools_init()
     g_task_sync_tools->wifi_manager_apsta_mutex = xSemaphoreCreateMutex(); // wifi apsta manager
     if(g_task_sync_tools->wifi_manager_apsta_mutex == NULL) return TSYNC_MU_WIFI_MAN_APSTA_FAILED;
     
+
     
+    // --------------> Layer 2.4 "external peripherals" 
+    g_task_sync_tools->adc_74hc4067_mutex = xSemaphoreCreateMutex(); // wifi state
+    if(g_task_sync_tools->adc_74hc4067_mutex == NULL) return TSYNC_MU_ADC_74HC4067_FAILED;
+
 
 
     // --------------> Layer 2.4 "network protocols" 

@@ -1,19 +1,20 @@
 #ifndef _TASK_SYNC_TOOLS_
 #define _TASK_SYNC_TOOLS_
 
-
-
 /**
  * **********************************************************
  * Definitions
  * **********************************************************
  */
 #include <stdio.h>
+#include <stdint.h>
 
-#include <freertos/FreeRTOS.h>
+#include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 
-#include "stdint.h"
+
+
+
 
 // Handle risk of deadlock at layer `internal peripherals`:
 // - Solution 1: To avoid deadlock at layer `Internal Pheriph`, mutex of these peripheral
@@ -36,12 +37,17 @@
 
 typedef struct 
 {
-    // ====================== Internal Pheriph ==========================
+    // =============== SYSTEM ERROR FLAG ==========================
+    uint8_t err_flag; 
+    // default calloc will set 0, if error, device can set this flag
+    // then esp32 reset chip
+
+
+    // ====================== Internal Pheriph sync ==========================
     // These mutex ensure that only 1 API acts on 1 internal peripheral type 
     // at a time to avoid conflicts
     
     // Internal pheriph is lowest layer of "Project Layered Architecture", see README
-    // so only these mutex is enough for safe and reduce wasted ram
 
     //  mutex Layer 2.1 "internal pheriph"
     SemaphoreHandle_t adc_setup_handle_mutex;
@@ -54,6 +60,10 @@ typedef struct
     // Wifi tasks tools
     SemaphoreHandle_t wifi_state_mutex;
     SemaphoreHandle_t wifi_manager_apsta_mutex;
+
+
+    //  mutex Layer 2.2 "external pheriph"
+    SemaphoreHandle_t adc_74hc4067_mutex;
 
     // mutex Layer 2.4 "network protocols" 
     // MQTT tasks tools
@@ -79,6 +89,10 @@ typedef enum
     TSYNC_MU_WIFI_STATE_FAILED,
     TSYNC_MU_WIFI_MAN_APSTA_FAILED,
 
+    // layer 2.2
+    TSYNC_MU_ADC_74HC4067_FAILED,
+
+
     // layer 2.4
     TSYNC_MU_MQTT_STATE_FAILED
 } init_tasksync_t;
@@ -90,7 +104,7 @@ typedef enum
  */
 
 // init tools
-uint8_t task_sync_tools_init();
+init_tasksync_t task_sync_tools_init();
 
 
 // :v no deinit, sync tool should live with program

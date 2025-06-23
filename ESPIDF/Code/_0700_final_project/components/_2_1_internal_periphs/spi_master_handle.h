@@ -80,7 +80,7 @@
 // get periph mutex
 void take_spi_master_mutex();
 
-// get periph mutex
+// release periph mutex
 void release_spi_master_mutex();
 
 

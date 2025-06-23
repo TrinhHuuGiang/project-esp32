@@ -42,13 +42,6 @@
 
 
 
-// debug
-#if CONFIG_DEBUG_ENABLE !=0
-
-#define CONFIG_ESP_ERR_TO_NAME_LOOKUP // esp_err_to_name need define this macro otherwise it will return UNKOWN ERROR
-
-#endif
-
 // define
 #define SSD1306_ADDR (0x3C)
 

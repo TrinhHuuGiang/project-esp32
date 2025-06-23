@@ -1129,6 +1129,7 @@ _peripherals_err_t wifi_setup_get_wifi_list_scanned(wifi_setup_command_state_t* 
         send_peripheral_err_location(PERIPH_OK, __FILE__, __LINE__, "Wifi STA scanning/no instance scanned");
         #endif
 
+        
         * busy = WIFI_SETUP_COMMAND_REFUSED;
 
         goto return_ok;

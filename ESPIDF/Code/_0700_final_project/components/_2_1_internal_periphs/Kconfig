@@ -4,6 +4,25 @@ config DEBUG_ENABLE
     bool "Enable serial debug printing"
     default y
 
+
+config I2S_MASTER_BCK_PIN
+    int "I2S master clock bit clock pin"
+    default 4
+    help
+        default i2s BCK pin 4
+
+config I2S_MASTER_WS_PIN
+    int "I2S master clock word select pin or LRC"
+    default 16
+    help
+        default i2s word select pin 16
+
+config I2S_MASTER_DO_PIN
+    int "I2S master clock data output pin"
+    default 0
+    help
+        default i2s DO pin 0
+
 config ADC_INPUT_CHANNEL
     int "default unique adc input channel"
     default 6

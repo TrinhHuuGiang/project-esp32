@@ -1,0 +1,11 @@
+menu "DEV_____Peripherals_external_MAX98537_i2s_sound"
+
+
+config I2S_MAX98357_SD_PIN
+    int "shut down pin control output MAX98357 amplifier"
+    default 17
+    help
+        GPIO 17 for SD pin of MAX98357
+
+
+endmenu

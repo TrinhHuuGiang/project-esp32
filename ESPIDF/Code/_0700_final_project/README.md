@@ -82,7 +82,7 @@
     - Layer 4: System drivers and user drivers
         - Initialize internal control driver
             - System driver:
-                - Maintain system driver ( update, sleep, reset factory )
+                - Maintain system driver ( update, sleep (commingsoon), reset factory(commingsoon) )
             - Widget driver:
                 - Timer driver ( scheduling with clock device, update rtc with sntp)
                 - Network driver (implement protocol - Application layer in TCP/IP model)

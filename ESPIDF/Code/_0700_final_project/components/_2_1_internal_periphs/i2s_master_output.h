@@ -15,7 +15,7 @@
 #include <stdint.h> // type int
 
 //esp32
-#include "i2s.h"
+#include "driver/i2s.h"
 #include "esp_err.h"        // const char *esp_err_to_name(esp_err_t code);
 
 //user
@@ -57,7 +57,7 @@ typedef struct {
 // get periph mutex
 void take_i2s_mutex();
 
-// get periph mutex
+// release periph mutex
 void release_i2s_mutex();
 
 

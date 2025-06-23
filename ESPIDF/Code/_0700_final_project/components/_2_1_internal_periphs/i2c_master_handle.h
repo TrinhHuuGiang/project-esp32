@@ -25,6 +25,7 @@
 #include "_peripherals_err.h"
 #include "__task_sync.h"
 
+
 // Macro i2c master define
 #define I2C_MASTER_PORT          CONFIG_I2C_MASTER_PORT_NUMBER //(I2C_NUM_0) i2c has 2 port: port 0 or port 1
 #define I2C_MASTER_FREQ          CONFIG_I2C_MASTER_PORT_CLOCK  //(100000) 100 kHz (Standard Mode), maximun 1MHz for esp32
@@ -55,7 +56,7 @@ typedef struct
 // get periph mutex
 void take_i2c_master_mutex();
 
-// get periph mutex
+// release periph mutex
 void release_i2c_master_mutex();
 
 /**

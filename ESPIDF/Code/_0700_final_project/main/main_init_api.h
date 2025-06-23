@@ -32,7 +32,7 @@
 
 // layer 2 (Peripheral connections)
 // layer 2.1 - internal peripherals
-#include "adc_setup_handle.h"   // ADC : init, deinit
+#include "adc1_setup_handle.h"   // ADC : init, deinit
 #include "gpio_setup_handle.h"  // gpio : register, unregister isr service
 #include "i2c_master_handle.h"  // i2c master : init, deinit
 #include "i2s_master_output.h"  // i2s master output : init, deinit
@@ -43,7 +43,7 @@
 // layer 2.2 - external peripherals
 #include "gpio_74hc165.h"       // PISO x32 chan
 #include "gpio_74hc595.h"       // POSI x32 chan (4 for spi, 4 for adc input, 24 for general output)
-#include "gpio_74hc4067.h"      // ADC MUX DEMUX x16 chan
+#include "adc_74hc4067.h"       // ADC MUX DEMUX x16 chan
 #include "i2s_max98357.h"       // speaker amplifier
 // layer 2.3 - internal devices
 #include "i2c_ssd1306.h"        // system log
@@ -52,7 +52,7 @@
 // layer 2.4 - network protocols
 #include "http_server_handle.h" // http server
 #include "mqtt_pubsub_handle.h" // mqtt client
-
+#include "rtc_sntp.h"           // stnp update time
 
 // layer 3 (User define IO devices)
 // #include ""
@@ -60,7 +60,12 @@
 
 // layer 4 (Controller drivers and User define drivers)
 // layer 4.1 - internal drivers
-// #include ""
+
+
+#include "widDr_batterycheck.h"
+#include "widDr_time_realtime.h"
+
+
 // layer 4.2 - external drivers
 // #include ""
 

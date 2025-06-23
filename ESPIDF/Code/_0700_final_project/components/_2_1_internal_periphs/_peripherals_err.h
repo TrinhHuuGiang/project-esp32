@@ -27,6 +27,8 @@
 
 typedef enum
 {
+    PERIPH_UNKNOWN = -1, // use this for unknow error or another device want log
+
     // GENERAL STATE
     PERIPH_OK = 0 , // << always set ok 0, alot function check if(function()) will know return ok
     

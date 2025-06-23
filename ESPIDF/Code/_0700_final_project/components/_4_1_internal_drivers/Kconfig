@@ -1,0 +1,39 @@
+menu "DEV_____Driver_internal"
+
+config WID_REALTIME_TIMEZONE
+    string "Timezone string (TZ)"
+    default "ICT-7"
+    help
+        POSIX-style timezone string.
+        Use "ICT-7" for Vietnam (UTC+7), "GMT-8" for UTC+8, etc.
+
+config WID_REALTIME_SERVER
+    string "NTP server address"
+    default "pool.ntp.org"
+    help
+        NTP server to synchronize time.
+
+config WID_REALTIME_SERVER
+    string "NTP server address"
+    default "pool.ntp.org"
+    help
+        NTP server to synchronize time.
+
+
+choice WID_DISPLAY_SSD1306_ADDR
+    prompt "display SSD1306 I2C Address"
+    default WID_DISPLAY_SSD1306_ADDR_3C
+    help
+        Select the I2C address of the SSD1306 display
+        for display driver. Usually 0x3C or 0x3D.
+
+config WID_DISPLAY_SSD1306_ADDR_3C
+    bool "0x3C"
+
+config WID_DISPLAY_SSD1306_ADDR_3D
+    bool "0x3D"
+endchoice
+
+
+
+endmenu

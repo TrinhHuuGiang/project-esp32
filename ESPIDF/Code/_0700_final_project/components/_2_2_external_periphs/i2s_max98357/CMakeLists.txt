@@ -1,6 +1,6 @@
 idf_component_register(
     SRCS
-    "i2c_ds3231.c"
+    "i2s_max98357.c"
     INCLUDE_DIRS
     "."
     "${PROJECT_DIR}/components/_1_task_sync_tools/"

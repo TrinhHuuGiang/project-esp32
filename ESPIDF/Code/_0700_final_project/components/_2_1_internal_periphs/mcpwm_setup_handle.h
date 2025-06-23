@@ -74,7 +74,7 @@
 // get periph mutex
 void take_mcpwm_mutex();
 
-// get periph mutex
+// release periph mutex
 void release_mcpwm_mutex();
 
 

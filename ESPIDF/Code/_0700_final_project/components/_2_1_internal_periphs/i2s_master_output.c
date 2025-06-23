@@ -92,7 +92,7 @@ _peripherals_err_t i2s_master_output_init(const i2s_master_output_config_t *cfg)
         .sample_rate = cfg->sample_rate,
         .bits_per_sample = cfg->bits_per_sample,
         .channel_format = cfg->channel_format,
-        .communication_format = I2S_COMM_FORMAT_I2S_MSB,
+        .communication_format = I2S_COMM_FORMAT_STAND_I2S,
         .dma_buf_count = I2S_MASTER_DMA_BUF_COUNT,
         .dma_buf_len = I2S_MASTER_DMA_BUF_LEN,
         .use_apll = false,

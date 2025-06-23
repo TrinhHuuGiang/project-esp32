@@ -9,6 +9,16 @@
         "i2c.h": "c",
         "adc.h": "c",
         "esp_log.h": "c",
-        "adc1_setup_handle.h": "c"
+        "adc1_setup_handle.h": "c",
+        "sntp.h": "c",
+        "esp_sntp.h": "c",
+        "adc_74hc4067.h": "c",
+        "time.h": "c",
+        "i2c_ssd1306.h": "c",
+        "i2s.h": "c",
+        "__task_sync.h": "c",
+        "freertos.h": "c",
+        "i2c_master_handle.h": "c",
+        "gpio_74hc595.h": "c"
     }
 }

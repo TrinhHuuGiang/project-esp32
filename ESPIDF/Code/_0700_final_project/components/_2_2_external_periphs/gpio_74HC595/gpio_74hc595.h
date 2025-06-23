@@ -69,11 +69,28 @@
 //      send MSBit:    (31-24)  (23-16)   (15-8)  (7-0)
 //      595 series:    4(7-0)   3(7-0)   2(7-0)   1(7-0)
 
-// Struct init ( Runtime alive )
-// use this order for cpu calculate with bit order
+
+
+
+// Use this order for cpu calculate with bit order
+// note: ignore id port 0-> 7 if general perpose output
+// see note below
 typedef enum
 {
-    GPIO_74HC595_OUTPUT_NUM_0 = 0, 
+    // id port 0->3 use for analog select 74hc4067
+    GPIO_74HC595_OUTPUT_AS0 = 0,
+    GPIO_74HC595_OUTPUT_AS1,
+    GPIO_74HC595_OUTPUT_AS2,
+    GPIO_74HC595_OUTPUT_AS3,
+
+    // id port 4->7 use for micro sd, spi chipselect device 0 1 2
+    GPIO_74HC595_OUTPUT_SPI_SDCS,
+    GPIO_74HC595_OUTPUT_SPI_CS0,
+    GPIO_74HC595_OUTPUT_SPI_CS1,
+    GPIO_74HC595_OUTPUT_SPI_CS2,
+    
+    // id port 8->31 general 24 port output
+    GPIO_74HC595_OUTPUT_NUM_0, 
     GPIO_74HC595_OUTPUT_NUM_1,
     GPIO_74HC595_OUTPUT_NUM_2,
     GPIO_74HC595_OUTPUT_NUM_3,
@@ -96,15 +113,7 @@ typedef enum
     GPIO_74HC595_OUTPUT_NUM_20,
     GPIO_74HC595_OUTPUT_NUM_21,
     GPIO_74HC595_OUTPUT_NUM_22,
-    GPIO_74HC595_OUTPUT_NUM_23,
-    GPIO_74HC595_OUTPUT_NUM_24,
-    GPIO_74HC595_OUTPUT_NUM_25,
-    GPIO_74HC595_OUTPUT_NUM_26,
-    GPIO_74HC595_OUTPUT_NUM_27,
-    GPIO_74HC595_OUTPUT_NUM_28,
-    GPIO_74HC595_OUTPUT_NUM_29,
-    GPIO_74HC595_OUTPUT_NUM_30,
-    GPIO_74HC595_OUTPUT_NUM_31,
+    GPIO_74HC595_OUTPUT_NUM_23
 } gpio_74hc595_gate_num_t;
 
 typedef struct

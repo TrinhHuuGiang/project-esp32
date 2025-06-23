@@ -45,7 +45,7 @@
 // get periph mutex
 void take_ledc_mutex();
 
-// get periph mutex
+// release periph mutex
 void release_ledc_mutex();
 
 

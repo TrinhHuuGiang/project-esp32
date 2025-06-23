@@ -3,4 +3,5 @@ idf_component_register(
     "gpio_74hc595.c"
     INCLUDE_DIRS
     "."
+    "${PROJECT_DIR}/components/_1_task_sync_tools/"
     "${PROJECT_DIR}/components/_2_1_internal_periphs/")

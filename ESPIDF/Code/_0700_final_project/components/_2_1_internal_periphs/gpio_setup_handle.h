@@ -54,7 +54,7 @@
 // get periph mutex
 void take_gpio_mutex();
 
-// get periph mutex
+// release periph mutex
 void release_gpio_mutex();
 
 
