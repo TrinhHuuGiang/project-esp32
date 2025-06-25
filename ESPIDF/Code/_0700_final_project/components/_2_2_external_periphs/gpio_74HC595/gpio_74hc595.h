@@ -5,8 +5,12 @@
 // available for : keypad, relay, ... , and another device need control on off logic
 
 
-// update comming soon: reverse output flag ( depend on design, we want 
+// update comming: reverse output flag ( depend on design, we want 
 // implement order by High index to low index or reverse)
+
+
+// update: supple get and release mutex spi cs channel for thread safe
+
 
 #ifndef _GPIO_74HC565_H_
 #define _GPIO_74HC565_H_
@@ -25,9 +29,13 @@
 #include <stdio.h>
 
 // user define
+#include "__task_sync.h"
+
 // #include "gpio_setup_handle.h" // :) we use default handle cs pin of spi, it support 
                                     //raise LOW to HIGH for latch (LOW when shift and HIGH after shift out)
 #include "spi_master_handle.h"
+
+
 
 // Latch shift in register (ST_CP pin)
 #define GPIO_74HC595_LATCH_PIN       CONFIG_GPIO_74HC595_LATCH_PIN   // GPIO 5 LATCH
@@ -45,7 +53,8 @@
 // init state output
 #define GPIO_74HC595_INIT_PINS_MOD       (0xFFFFFFFF) 
 #define GPIO_74HC595_INIT_PINS_VALUE     (0xFFFFFFFF) // output full level 1 (modify if needed)
-
+                                                        // hardware design: port 4->7 is cs spi (active low)
+                                                        // -> keep default reset is 0xFF
 
 // Note:
 // - ESP32 uses little-endian (LSByte is stored at the lowest address) memory layout:
@@ -127,6 +136,40 @@ typedef struct
     spi_transaction_ext_t* transaction_config;   // prepare/ polling / delete transaction
 
 } gpio_74hc595_data_t;
+
+
+
+
+
+/**
+ * **********************************************************
+ * Support Sync APIs 
+ * *********************************************************
+ * */
+
+// cs spi spi sync
+// get cs mutex
+void take_cs_spi_mutex();
+
+// release cs spi mutex
+void release_cs_spi_mutex();
+
+    // an example transaction chip select for spi sdcard
+        // 1. take mutex before chipselect session
+        // take_cs_spi_mutex();
+        
+        // 2. set chip select
+        // if(gpio_74HC595_set_output_bit(1<<GPIO_74HC595_OUTPUT_SPI_SDCS, 0))
+
+        // 3. do something
+
+        // 4. unset chip select
+        // if(gpio_74HC595_set_output_bit(1<<GPIO_74HC595_OUTPUT_SPI_SDCS, 1<<GPIO_74HC595_OUTPUT_SPI_SDCS))
+
+        // 5. release mutex after unset chip select
+        // release periph mutex
+
+
 
 
 /**

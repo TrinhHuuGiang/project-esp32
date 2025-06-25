@@ -9,9 +9,12 @@ idf_component_register(
     "ledc_setup_handle.c"
     "mcpwm_setup_handle.c"
     "wifi_setup_handle.c"
+    
     INCLUDE_DIRS
     "."
-    "${PROJECT_DIR}/components/_1_reference_libs/" # include reference libraries
-    "${PROJECT_DIR}/components/_1_task_sync_tools/"
+    
     REQUIRES
-    nvs_flash)
+    # esp components
+    nvs_flash
+    # project components
+    _1_reference_libs _1_task_sync_tools)

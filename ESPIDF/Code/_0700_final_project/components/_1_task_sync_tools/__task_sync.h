@@ -64,6 +64,12 @@ typedef struct
 
     //  mutex Layer 2.2 "external pheriph"
     SemaphoreHandle_t adc_74hc4067_mutex;
+    SemaphoreHandle_t gpio_74hc595_cs_spi_mutex;
+
+
+    // mutex layer 2.3 " internal devices "
+
+
 
     // mutex Layer 2.4 "network protocols" 
     // MQTT tasks tools
@@ -91,6 +97,10 @@ typedef enum
 
     // layer 2.2
     TSYNC_MU_ADC_74HC4067_FAILED,
+    TSYNC_MU_GPIO_74HC595_CS_SPI_FAILED,
+
+    // layer 2.3
+
 
 
     // layer 2.4

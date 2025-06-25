@@ -18,7 +18,24 @@
 uint8_t spi_sd_card_mount_vfs_with_fatfs_on_card(sdmmc_card_t** out_card)
 {
     //take mutex
-	take_spi_master_mutex();
+	take_cs_spi_mutex();
+    
+    // set 595
+    if(gpio_74HC595_set_output_bit(1<<GPIO_74HC595_OUTPUT_SPI_SDCS, 0))
+    {
+        #if CONFIG_DEBUG_ENABLE !=0
+        send_peripheral_err_location(PERIPH_UNKNOWN, __FILE__, __LINE__, "sd setup cs fail");
+        #endif
+        
+        //give mutex
+        release_cs_spi_mutex();
+        return -1;
+    }
+
+
+
+    // reset cs pin
+    gpio_setup_reset_pin_to_origin(SPI_SD_CARD_PIN_CS); //<< alway ok
 
     // slave config
     sdmmc_host_t host_config_input = SDSPI_HOST_DEFAULT();
@@ -55,14 +72,14 @@ uint8_t spi_sd_card_mount_vfs_with_fatfs_on_card(sdmmc_card_t** out_card)
         #endif
         
         //give mutex
-        release_spi_master_mutex();
+        release_cs_spi_mutex();
         return 1;
     }
 
     // ok
     
     //give mutex
-    release_spi_master_mutex();
+    release_cs_spi_mutex();
     return 0;
 }
 
@@ -80,7 +97,19 @@ uint8_t spi_sd_card_mount_vfs_with_fatfs_on_card(sdmmc_card_t** out_card)
 uint8_t spi_sd_card_un_mount_vfs_with_fatfs_on_card(sdmmc_card_t *card)
 {
 	//take mutex
-	take_spi_master_mutex();
+	take_cs_spi_mutex();
+
+    // set 595
+    if(gpio_74HC595_set_output_bit(1<<GPIO_74HC595_OUTPUT_SPI_SDCS, 0))
+    {
+        #if CONFIG_DEBUG_ENABLE !=0
+        send_peripheral_err_location(PERIPH_UNKNOWN, __FILE__, __LINE__, "sd setup cs fail");
+        #endif
+        
+        //give mutex
+        release_cs_spi_mutex();
+        return -1;
+    }
 
     esp_err_t ret = esp_vfs_fat_sdcard_unmount(SPI_SD_CARD_ROOT_PATH_STRING,card);
 
@@ -90,14 +119,36 @@ uint8_t spi_sd_card_un_mount_vfs_with_fatfs_on_card(sdmmc_card_t *card)
         send_peripheral_err_location(SPI_SD_CARD_UN_MOUNT_CARD_FAILED, __FILE__, __LINE__, esp_err_to_name(ret));
         #endif
         
+        // unset 595
+        if(gpio_74HC595_set_output_bit(1<<GPIO_74HC595_OUTPUT_SPI_SDCS, 1<<GPIO_74HC595_OUTPUT_SPI_SDCS))
+        {
+            #if CONFIG_DEBUG_ENABLE !=0
+            send_peripheral_err_location(PERIPH_UNKNOWN, __FILE__, __LINE__, "sd unset cs fail");
+            #endif
+            
+            //give mutex
+            release_cs_spi_mutex();
+            return -1;
+        }
+
         //give mutex
-        release_spi_master_mutex();
+        release_cs_spi_mutex();
         return 1;
     }
 
-    // ok
-    
+    // unset 595
+    if(gpio_74HC595_set_output_bit(1<<GPIO_74HC595_OUTPUT_SPI_SDCS, 1<<GPIO_74HC595_OUTPUT_SPI_SDCS))
+    {
+        #if CONFIG_DEBUG_ENABLE !=0
+        send_peripheral_err_location(PERIPH_UNKNOWN, __FILE__, __LINE__, "sd unset cs fail");
+        #endif
+        
+        //give mutex
+        release_cs_spi_mutex();
+        return -1;
+    }
+
     //give mutex
-    release_spi_master_mutex();
+    release_cs_spi_mutex();
     return 0;
 }

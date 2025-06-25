@@ -1,3 +1,5 @@
+
+
 /**
  * **********************************************************
  * Definitions
@@ -38,17 +40,23 @@ void release_adc1_mutex()
 
 // config adc attenuation 11db
 // -> maximum input 3.3v, but linear range from 150 - 2450 mV (0.1-2.45v)
-void adc1_setup_init_atten11dB(void)
+uint8_t adc1_setup_init_atten11dB(void)
 {
 	//take mutex
 	take_adc1_mutex();
-
     
-    adc1_config_width(ADC1_SETUP_RESOLUTION);
-    adc1_config_channel_atten(ADC1_SETUP_CHANNEL, ADC_ATTEN_DB_11);
+    esp_err_t ret = adc1_config_width(ADC1_SETUP_RESOLUTION);
+
+    if(ret) return 1;
+
+    ret = adc1_config_channel_atten(ADC1_SETUP_CHANNEL, ADC_ATTEN_DB_11);
+
+    if(ret) return 2;
 
     //give mutex
     release_adc1_mutex();
+
+    return 0;
 }
 
 // get raw adc value 
@@ -80,14 +88,16 @@ int  adc1_setup_read_raw_atten11dB(void)
 // get 
 int  adc1_setup_read_voltage_atten11dB(void)
 {
-    // :) no mutex here
+    // :) no mutex here double call will deadlock
 
     int raw = adc1_setup_read_raw_atten11dB();
     if (raw < 0) return -1;
 
-    // calculate [0..4095] → [150..2450] mV
+    // calculate [0..4095] → [0..3300] mV
     int voltage = ADC1_SETUP_VOFFSET_MV + 
-                  (raw * ADC1_SETUP_VRANGE_MV) / ADC1_SETUP_RAW_MAX;
+                 ( (double)(raw) / (double)ADC1_SETUP_RAW_MAX ) * ADC1_SETUP_VRANGE_MV;
+
+    // fprintf(stderr,"raw: %d, voltage:%d\n", raw, voltage);
 
     return voltage;
 }

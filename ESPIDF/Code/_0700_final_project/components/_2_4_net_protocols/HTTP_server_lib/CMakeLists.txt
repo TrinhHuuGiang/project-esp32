@@ -3,9 +3,11 @@ idf_component_register(
     "http_server_handle.c"
     INCLUDE_DIRS
     "."
-    "${PROJECT_DIR}/components/_1_reference_libs/"
-    "${PROJECT_DIR}/components/_1_task_sync_tools/"
-    "${PROJECT_DIR}/components/_2_1_internal_periphs/"
+
     REQUIRES
-    esp_http_server
-    nvs_flash)
+    esp_http_server nvs_flash
+    
+    # project components
+    _1_reference_libs
+    _1_task_sync_tools
+    _2_1_internal_periphs)

@@ -69,11 +69,6 @@
  * Sync 
  * (never use these mutex if call any APIs below, it included)
  * (only use when other device is conflicted with this peripheral)
- * 
- * Note:
- * + used it in "spi_sd_mount_to_fs"
- * + anytime interact with spi sdcard file system: fprintf, fwrite, ...
- * + remember take before use and release after done
  * *********************************************************
  * */
 

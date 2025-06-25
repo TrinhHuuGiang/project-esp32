@@ -19,6 +19,10 @@
         "__task_sync.h": "c",
         "freertos.h": "c",
         "i2c_master_handle.h": "c",
-        "gpio_74hc595.h": "c"
+        "gpio_74hc595.h": "c",
+        "esp_vfs_fat.h": "c",
+        "stat.h": "c",
+        "io.h": "c",
+        "cjson.h": "c"
     }
 }

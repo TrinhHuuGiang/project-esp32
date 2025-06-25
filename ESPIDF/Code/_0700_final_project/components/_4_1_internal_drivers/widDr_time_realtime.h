@@ -38,8 +38,10 @@
 
 // task size
 #define WIDDR_TASK_NAME             "widDr_rtc_updater"
-#define WIDDR_TASK_STACK_SIZE       TASK_STACK_SIZE_MEDIUM
-#define WIDDR_TASK_PRIORITY         TASK_PRIO_NORMAL
+#define WIDDR_TASK_STACK_SIZE       TASK_STACK_SIZE_HIGH // << (overflow at) TASK_STACK_SIZE MEDIUM
+                                        // LOG ERR: Guru Meditation Error: Core  0 panic'ed (StoreProhibited). Exception was unhandled.
+
+#define WIDDR_TASK_PRIORITY         TASK_PRIO_LOW
 
 #define WIDDR_TASK_RETRY_AFTER      1000 // 1s
 

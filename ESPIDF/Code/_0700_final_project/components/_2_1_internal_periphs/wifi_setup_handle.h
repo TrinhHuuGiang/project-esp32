@@ -51,6 +51,7 @@
 #define WIFI_SETUP_AP_MODE_IP_ADDR         ( (192 << 24) | (168 << 16) | (1<<8)   | (1) )
 #define WIFI_SETUP_AP_MODE_NET_MASK        ( (255 << 24) | (255 << 16) | (255<<8) | (0) ) // C class network by classful
 
+
 // country set infor
 #define WIFI_SETUP_SET_DEFAULT_COUNTRY_CODE    "01 " // world safe mode
                                                      // note: alway have third octet
@@ -298,6 +299,8 @@ typedef struct
 uint8_t wifi_setup_start_apsta_mode_manager_driver(
     wifi_manager_apsta_mode_t** apsta_driver_manager);                   // <<< run in new task
 
+
+
 // when register, if wifi driver in state of, manager will feedback REFUSE,
 // so we can wait a minute and re register
 // if manager feedback ok , we will not allowed to re call this function before we un register service 
@@ -308,6 +311,8 @@ uint8_t wifi_setup_register_a_service_with_apsta_mode_manager(
 // manager only know some service is running and number of service is allowed
 uint8_t wifi_setup_un_register_a_service_with_apsta_mode_manager(
     wifi_manager_apsta_mode_t* apsta_driver_manager);                   // just call when running manager driver
+
+
 
 // this function will feedback REFUSE if someone service is running not jet unregister
 // wait a minute and try recall if all service disconnected
@@ -321,20 +326,26 @@ uint8_t wifi_setup_stop_apsta_mode_manager_driver(
 // - Then call wifi_setup_start_apsta_mode_manager_driver(); to manage driver from step 2
 // + This function frequency check wifi connect state and always try reconnect if it can
 
-// - When a service using wifi, it should call wifi_setup_register_a_service_with_apsta_mode_manager();
+// - When a service using wifi, we 'can' call (not recommend) wifi_setup_register_a_service_with_apsta_mode_manager();
 // + This funtion count up with manager and manager will no accept to stop wifi
 
 // Warning:
 // + Only using scan/ list scan function on step 3.5 when using wifi manager
-// + If want to modify wifi information at step 2.5, sure that wifi manager was stopped (step below)
+// + If want to modify wifi information at step 2.5, sure that wifi manager was stopped for apply update
+//  (step below)
 
 // - After use wifi: call wifi_setup_stop_apsta_mode_manager_driver(); to disconnect and stop wifi driver
 // + This action will be blocked if any wifi service is running
-// + The service is running always call wifi_setup_un_register_a_service_with_apsta_mode_manager() if yous want stop wifi
+// + The service is running always call 
+// wifi_setup_un_register_a_service_with_apsta_mode_manager() if it register befor to stop wifi
 
 // - Last, we de init wifi driver was setup if no longer use wifi
 
 
+// Tips: reduce complexity, we dont need call
+//      "wifi_setup_register_a_service_with_apsta_mode_manager"
+//  and "wifi_setup_un_register_a_service_with_apsta_mode_manager"
+// Only start and stop driver :)
 
 
 /**

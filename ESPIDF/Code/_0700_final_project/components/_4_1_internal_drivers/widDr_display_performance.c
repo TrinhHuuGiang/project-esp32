@@ -71,7 +71,9 @@ static void pad_right(char* str, size_t total_len)
 // update one line based on enum
 static uint8_t widDr_display_update_line(widdr_display_line_num_t line)
 {
-    char content[32] = {0};
+    const uint8_t buf_size =63;
+    char content[64] = {0};
+    
     int battery_mv = 0;
     ds3231_reg_t* rtc_table = NULL;
     uint16_t year, mon, date, hour, min, sec;
@@ -85,11 +87,15 @@ static uint8_t widDr_display_update_line(widdr_display_line_num_t line)
     switch (line)
     {
     case WIDDR_LINE_0:
-        snprintf(content, 17, "He: %dM/%dM",
-                (int)(esp_get_free_heap_size()/1024.0),
-                (int)(heap_caps_get_total_size(MALLOC_CAP_DEFAULT)/1024.0));
+    {
+        int total_heap = (int)(heap_caps_get_total_size(MALLOC_CAP_DEFAULT)/1024.0);
+
+        snprintf(content, buf_size, "Heap: %dk/%dk",
+        total_heap-(int)(esp_get_free_heap_size()/1024.0),
+        total_heap);
         pad_right(content, 16);
         break;
+    }
 
     case WIDDR_LINE_1:
         if (winDr_get_battery_mV(&battery_mv))
@@ -101,28 +107,28 @@ static uint8_t widDr_display_update_line(widdr_display_line_num_t line)
         break;
 
     case WIDDR_LINE_3:
-        if (i2c_ds3231_init_reg_table(&rtc_table)) return 3;
+        if (i2c_ds3231_init_reg_table((ds3231_reg_t*)(&rtc_table))) return 3;
         if (i2c_ds3231_read_full_reg(rtc_table)) return 4;
 
         i2c_ds3231_translate_reg_to_time(*rtc_table, I2C_DS3231_REG_YEAR, &year);
         i2c_ds3231_translate_reg_to_time(*rtc_table, I2C_DS3231_REG_MONTH, &mon);
         i2c_ds3231_translate_reg_to_time(*rtc_table, I2C_DS3231_REG_DATE, &date);
         
-        snprintf(content, 17, "DATE: %04d-%02d-%02d", year, mon, date);
+        snprintf(content, buf_size, "DATE: %04d-%02d-%02d", year, mon, date);
         pad_right(content, 16);
-        i2c_ds3231_clear_reg_table(&rtc_table);
+        i2c_ds3231_clear_reg_table((ds3231_reg_t*)(&rtc_table));
         break;
 
     case WIDDR_LINE_4:
-        if (i2c_ds3231_init_reg_table(&rtc_table)) return 5;
+        if (i2c_ds3231_init_reg_table((ds3231_reg_t*)(&rtc_table))) return 5;
         if (i2c_ds3231_read_full_reg(rtc_table)) return 6;
         
         i2c_ds3231_translate_reg_to_time(*rtc_table, I2C_DS3231_REG_HOUR, &hour);
         i2c_ds3231_translate_reg_to_time(*rtc_table, I2C_DS3231_REG_MIN, &min);
         i2c_ds3231_translate_reg_to_time(*rtc_table, I2C_DS3231_REG_SEC, &sec);
-        snprintf(content, 17, "TIME: %02d:%02d:%02d", hour, min, sec);
+        snprintf(content, buf_size, "TIME: %02d:%02d:%02d", hour, min, sec);
         pad_right(content, 16);
-        i2c_ds3231_clear_reg_table(&rtc_table);
+        i2c_ds3231_clear_reg_table((ds3231_reg_t*)(&rtc_table));
         break;
 
     case WIDDR_LINE_2:
@@ -189,13 +195,14 @@ uint8_t widDr_display_init_and_run(void)
     BaseType_t ret = xTaskCreate(
             widDr_display_task,
             "widDrDispTask",
-            TASK_STACK_SIZE_MEDIUM,
+            WIDDR_DISPLAY_SSD1306_TASK_STACK,
             NULL,
-            TASK_PRIO_LOW,
+            WIDDR_DISPLAY_SSD1306_TASK_PRIO,
             NULL
         );
     
     return (ret == pdPASS) ? 0 : 2;
+
 }
 
 

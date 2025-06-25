@@ -24,8 +24,8 @@
 //      solution: :) i will not sync here for reduce complexity 
 //                      but we can sync and delay a second
 
-#ifndef _WIDDR_BATTERY_H_
-#define _WIDDR_BATTERY_H_
+#ifndef _WIDDR_DISPLAY_PERFORM_H_
+#define _WIDDR_DISPLAY_PERFORM_H_
 
 /**
  * **********************************************************
@@ -62,6 +62,10 @@
 #endif
 
 #define WIDDR_DISPLAY_SSD1306_RENEW_TIME 1000 // 1s
+
+#define WIDDR_DISPLAY_SSD1306_TASK_STACK  TASK_STACK_SIZE_HIGH // << overflow at TASK_STACK_SIZE_MEDIUM 
+
+#define WIDDR_DISPLAY_SSD1306_TASK_PRIO    TASK_PRIO_LOW 
 
 typedef enum
 {

@@ -858,16 +858,22 @@ _peripherals_err_t wifi_setup_set_wifi_sta_config(uint8_t ssid[32] , uint8_t pas
         (! strcmp((const char*)(old_conf.sta.bssid), (const char*)bssid)))
     {
         // debug
-        #if CONFIG_DEBUG_ENABLE !=0
-        fprintf(stderr, "\nSTA mode ssid/password/bssid [%s || %s || %s] similar with old config\n", 
-            (const char*)(old_conf.sta.ssid), (const char*)(old_conf.sta.password), (const char*)(old_conf.sta.bssid));
+        #if CONFIG_DEBUG_ENABLE != 0
+            fprintf(stderr, "\nSTA mode ssid/password/bssid [%s || %s || %02X:%02X:%02X:%02X:%02X:%02X] similar with old config\n", 
+                (const char*)(old_conf.sta.ssid), 
+                (const char*)(old_conf.sta.password), 
+                old_conf.sta.bssid[0], old_conf.sta.bssid[1], old_conf.sta.bssid[2],
+                old_conf.sta.bssid[3], old_conf.sta.bssid[4], old_conf.sta.bssid[5]);
         #endif
         return PERIPH_OK;
     }
 
-    #if CONFIG_DEBUG_ENABLE !=0
-    fprintf(stderr, "STA mode Start config ssid/password/bssid [%s || %s || %s]\n", 
-        (const char*)(old_conf.sta.ssid), (const char*)(old_conf.sta.password), (const char*)(old_conf.sta.bssid));
+    #if CONFIG_DEBUG_ENABLE != 0
+        fprintf(stderr, "\nSTA mode START config ssid/password/bssid [%s || %s || %02X:%02X:%02X:%02X:%02X:%02X]\n", 
+            (const char*)(old_conf.sta.ssid), 
+            (const char*)(old_conf.sta.password), 
+            old_conf.sta.bssid[0], old_conf.sta.bssid[1], old_conf.sta.bssid[2],
+            old_conf.sta.bssid[3], old_conf.sta.bssid[4], old_conf.sta.bssid[5]);
     #endif
 
     // init

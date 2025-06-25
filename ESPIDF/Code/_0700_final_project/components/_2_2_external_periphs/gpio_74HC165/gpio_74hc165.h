@@ -68,11 +68,18 @@
 // user define
 #include "gpio_setup_handle.h"
 
+#include "_priority.h"
+
 #define GPIO_74HC165_CLOCK_PIN                 CONFIG_GPIO_74HC165_CLOCK_PIN
 #define GPIO_74HC165_LATCH_PIN                 CONFIG_GPIO_74HC165_LATCH_PIN
 #define GPIO_74HC165_DATA_SHIFT_IN_PIN         CONFIG_GPIO_74HC165_DATA_SHIFT_IN
 
 #define GPIO_74HC165_DATA_SHIFT_IN_LEN         (32) // only update <=32
+
+// driver
+#define GPIO_74HC165_DRIVER_STACK   TASK_STACK_SIZE_MEDIUM // << stack over flow at TASK_STACK_SIZE_LOW
+#define GPIO_74HC165_DRIVER_PRIO    TASK_PRIO_REALTIME
+
 
 typedef struct{
     uint32_t reg_state;

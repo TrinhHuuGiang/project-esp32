@@ -14,8 +14,8 @@
 
 // solution: use mutex and perform channel switching and reading in the same api
 
-#ifndef _ADC_74HC565_H_
-#define _ADC_74HC565_H_
+#ifndef _ADC_74HC4067_H_
+#define _ADC_74HC4067_H_
 
 
 
@@ -79,11 +79,6 @@ typedef enum
  * Sync 
  * (never use these mutex if call any APIs below, it included)
  * (only use when other device is conflicted with this peripheral)
- * 
- * Note:
- * + used it in "spi_sd_mount_to_fs"
- * + anytime interact with spi sdcard file system: fprintf, fwrite, ...
- * + remember take before use and release after done
  * *********************************************************
  * */
 
@@ -109,7 +104,10 @@ void release_adc_74hc4067_mutex();
 uint8_t adc_74hc4067_select_input_channel_read_raw(adc_74hc4067_chan_t a_chan, int* value);
 
 
-// select analog input channel then read millis vol
+/**
+ * @brief select analog input channel then read millis vol 
+ * @retval -1 if fail, else range 0-3000mV returned
+ */
 uint8_t adc_74hc4067_select_input_channel_read_mV(adc_74hc4067_chan_t a_chan, int* value);
 
 

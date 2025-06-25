@@ -67,10 +67,17 @@ init_tasksync_t task_sync_tools_init()
     
 
     
-    // --------------> Layer 2.4 "external peripherals" 
+    // --------------> Layer 2.2 "external peripherals" 
     g_task_sync_tools->adc_74hc4067_mutex = xSemaphoreCreateMutex(); // wifi state
     if(g_task_sync_tools->adc_74hc4067_mutex == NULL) return TSYNC_MU_ADC_74HC4067_FAILED;
 
+
+    g_task_sync_tools->gpio_74hc595_cs_spi_mutex = xSemaphoreCreateMutex(); // wifi state
+    if(g_task_sync_tools->gpio_74hc595_cs_spi_mutex == NULL) return TSYNC_MU_GPIO_74HC595_CS_SPI_FAILED;
+
+
+
+    // --------------> Layer 2.3 "internal devices" 
 
 
     // --------------> Layer 2.4 "network protocols" 

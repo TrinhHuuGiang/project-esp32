@@ -10,6 +10,9 @@
  * Variables
  * **********************************************************
  */
+
+extern __task_sync_t* g_task_sync_tools; // get sync tools 
+
 static gpio_74hc595_data_t* s_data_struct = NULL;
 
 /**
@@ -17,6 +20,22 @@ static gpio_74hc595_data_t* s_data_struct = NULL;
  * Codes
  * **********************************************************
  */
+
+
+// get cs spi mutex
+void take_cs_spi_mutex()
+{
+    xSemaphoreTake(g_task_sync_tools->gpio_74hc595_cs_spi_mutex, portMAX_DELAY);
+}
+
+// release cs spi mutex
+void release_cs_spi_mutex()
+{
+    xSemaphoreGive(g_task_sync_tools->gpio_74hc595_cs_spi_mutex);
+}
+
+
+
 
 
 /**

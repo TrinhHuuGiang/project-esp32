@@ -3,6 +3,8 @@
 // this library expand API help I2S - Inter-Integrated Circuit Sound
 //      added some functions to enable and disable the i2s max98357 module
 
+// control only by "widDr_wav_player.h" otherwise not thread safe
+
 #ifndef _I2S_MAX98357_H_
 #define _I2S_MAX98357_H_
 

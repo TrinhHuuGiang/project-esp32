@@ -2,6 +2,10 @@
 // using I2S_NUM_0
 // apply for MAX98357 -> do not reuse this library 
 
+// control only by "widDr_wav_player.h" otherwise not thread safe
+
+
+
 #ifndef _I2S_MASTER_OUTPUT_H_
 #define _I2S_MASTER_OUTPUT_H_
 
@@ -59,8 +63,6 @@ void take_i2s_mutex();
 
 // release periph mutex
 void release_i2s_mutex();
-
-
 
 
 

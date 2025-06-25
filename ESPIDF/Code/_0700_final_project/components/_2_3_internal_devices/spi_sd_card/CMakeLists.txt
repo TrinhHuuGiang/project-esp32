@@ -3,7 +3,10 @@ idf_component_register(
     "spi_sd_mount_to_fs.c"
     INCLUDE_DIRS
     "."
-    "${PROJECT_DIR}/components/_1_task_sync_tools/"
-    "${PROJECT_DIR}/components/_2_1_internal_periphs/"
     REQUIRES
-    fatfs)
+    fatfs
+    
+    # project components
+    _1_task_sync_tools
+    _2_1_internal_periphs
+    gpio_74HC595)

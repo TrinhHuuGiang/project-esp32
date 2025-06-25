@@ -1,3 +1,9 @@
+# Important notes:
+- _0007_FINAL_PROJECT 
+    ```note
+    This project is adapted from my personal expansion board for esp32 so will configure the objects in each layer to match it. Not sure if it will be suitable for all basic purposes.
+    ```
+
 # Project Layered Architecture
 ## Layer 1: **System architecture infrastructure**
 - [Reference libraries](./components/_00_reference_libs/README.md)
@@ -102,3 +108,28 @@
         - Initialize external control driver
             - User define logic code blocks
     - Loop waiting / blocked until end signal from special internal system driver
+
+
+
+# FILE system (8.3 filename)
+``` c
+    root ("/sd_card0")
+        |
+        project file folder ("/prj_dt")
+            |
+            system folder ("/sys_fd")
+            |            |
+            |            wifi_config ("/wf_cf.dat") // type json format
+            |            |                          // include: ap, sta config inform 
+            |            Register_logic_block ("/lgb_init.dat") // type json format
+            |            |
+            |            Pem cert MQTT ("/mqttcert.pem") // pem certificate . string file
+            |            MQTT_config ("/mqtt_cf.dat") // type json format
+            |                                          // include: broker uri, username, password
+            |
+            resource folder ("/rsrc_fd")
+                        |
+                        wav_file("/filename.wav")    // wav format
+                        |
+                        binfile ("/filename.bin")    // binary format (bitmap, data...)
+```

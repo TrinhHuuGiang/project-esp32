@@ -3,6 +3,9 @@ idf_component_register(
     "adc_74hc4067.c"
     INCLUDE_DIRS
     "."
-    "${PROJECT_DIR}/components/_1_task_sync_tools/"
-    "${PROJECT_DIR}/components/_2_1_internal_periphs/"
-    "${PROJECT_DIR}/components/_2_2_external_periphs/gpio_74HC595")
+    REQUIRES
+    # project components
+    _1_task_sync_tools
+    _2_1_internal_periphs
+
+    gpio_74HC595)

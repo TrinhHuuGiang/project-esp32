@@ -59,6 +59,7 @@ static void widDr_realtime_update(void* arg)
     bool synced = false;
     while (!synced)
     {
+        fprintf(stderr,"sntp checking\n");
         if (sntp_time_sync_wait_500ms())
         {
             fprintf(stderr,"rtc syncing...");

@@ -72,9 +72,9 @@ uint8_t gpio_74HC165_init_input_gate()
     BaseType_t res = xTaskCreate(
         gpio_74HC165_renew_register_driver,
         "gpio_74hc165_input_task",
-        512,
+        GPIO_74HC165_DRIVER_STACK,    // stack overflow at TASK_STACK_SIZE_LOW
         NULL,
-        5,
+        GPIO_74HC165_DRIVER_PRIO,
         &gpio_74HC165_task_handle
     );
 

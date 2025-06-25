@@ -30,9 +30,10 @@
 #define ADC1_SETUP_RESOLUTION       ADC_WIDTH_BIT_12  // 9–12 bits
 #define ADC1_SETUP_RAW_MAX          ((1 << 12) - 1)  // 4095 for 12-bit ADC
 
-// Attenuation 11dB: linear range ≈ 150 mV to 2450 mV
-#define ADC1_SETUP_VOFFSET_MV       150
-#define ADC1_SETUP_VRANGE_MV        (2450 - ADC1_SETUP_VOFFSET_MV)  // 2300 mV
+// Attenuation 11dB (0-3905mV) drop to (0-1100mV vref) : linear range ≈ 150 mV to 2450 mV
+// but esp32 limit at 3.3v -> Vrange input: 0-3300mV
+#define ADC1_SETUP_VOFFSET_MV       0
+#define ADC1_SETUP_VRANGE_MV        (3905 - ADC1_SETUP_VOFFSET_MV)
 
 
 
@@ -63,7 +64,8 @@ void release_adc1_mutex();
 
 
 // Configure ADC1 channel with attenuation = 11 dB
-void adc1_setup_init_atten11dB(void);
+// :) this function return !0 is fail, but no log error (comming soon)
+uint8_t adc1_setup_init_atten11dB(void);
 
 /**
  * Get raw ADC value.
@@ -75,9 +77,10 @@ int adc1_setup_read_raw_atten11dB(void);
 /**
  * Get voltage from ADC in millivolts.
  * Linearly mapped from raw → 150mV–2450mV.
- * If input voltage > 2.45V, result will be clipped to 2450 mV.
+ * Full range return 0-3300mV (limit by esp32 gpio)
+ * If input voltage > 2.45V, result will be not linear
  *
- * @return Voltage in millivolts (150 – 2450 mV)
+ * @return Voltage in millivolts (0 – 3300 mV)
  * @retval -1 if cant read
  */
 int adc1_setup_read_voltage_atten11dB(void);
