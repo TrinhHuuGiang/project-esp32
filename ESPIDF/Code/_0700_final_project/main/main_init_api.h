@@ -72,7 +72,7 @@
 #include "widDr_batterycheck.h"
 #include "widDr_time_realtime.h"
 #include "widDr_display_performance.h"
-
+#include "widDr_net_mqtt_manager.h"
 
 // layer 4.2 - external drivers
 // #include ""
@@ -128,12 +128,16 @@ typedef enum
     MAIN_RET_HTTP_SERVER_START_FAIL, // http server
 
     MAIN_RET_MQTT_CLIENT_INIT_FAIL, // mqtt client
-
+    MAIN_RET_MQTT_CLIENT_REGIST_EVENTLOOP_FAIL,
+    MAIN_RET_MQTT_CLIENT_START_FAIL,
 
     // layer 4.1
     MAIN_RET_WID_DISPLAY_INIT_FAIL,// display
 
     MAIN_RET_WID_REALTIME_FAIL,// realtime
+
+    MAIN_RET_WID_MQTT_MANAGER_FAIL,//mqtt manager
+
 
     // main
     MAIN_RET_FIX_MISSING_FILE_FOLDER_FAIL,//main

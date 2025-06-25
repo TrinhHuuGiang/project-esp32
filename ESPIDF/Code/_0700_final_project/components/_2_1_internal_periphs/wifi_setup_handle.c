@@ -855,7 +855,7 @@ _peripherals_err_t wifi_setup_set_wifi_sta_config(uint8_t ssid[32] , uint8_t pas
 
     if( (! strcmp((const char*)(old_conf.sta.ssid), (const char*)ssid)) &&
         (! strcmp((const char*)(old_conf.sta.password), (const char*)password)) &&
-        (! strcmp((const char*)(old_conf.sta.bssid), (const char*)bssid)))
+        (memcmp(old_conf.sta.bssid, bssid, 6) == 0))
     {
         // debug
         #if CONFIG_DEBUG_ENABLE != 0

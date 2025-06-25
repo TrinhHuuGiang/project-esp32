@@ -306,13 +306,13 @@ _peripherals_err_t mqtt_client_handle_client_reconnect(mqtt_client_command_state
 {
     xSemaphoreTake(g_task_sync_tools->mqtt_state_mutex, portMAX_DELAY);
 
-    // check if connecting / started / connected state
+    // check if connecting / not started / connected state
     if(GET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_CONNECTING) ||
         ! GET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_STARTED) ||
         GET_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_CONNECTED))
     {
         #if CONFIG_DEBUG_ENABLE !=0
-        send_peripheral_err_location(PERIPH_OK, __FILE__, __LINE__, "MQTT client reconnect failed");
+        send_peripheral_err_location(PERIPH_OK, __FILE__, __LINE__, "MQTT client not started, connecting, connected");
         #endif
 
         *busy = MQTT_CLIENT_COMMAND_REFUSED; // already connecting/started/connected state
@@ -411,7 +411,7 @@ int mqtt_client_handle_client_subcribe_topic(const char* topic, mqtt_qos_type_t 
     // qos = 0, 1, 2
     // get new message id subcribe
 
-    ESP_LOGI("MQTT_LIB","START SUBCRIBE FUNTION");
+    ESP_LOGI("MQTT_LIB","START SUBCRIBE");
 
     xSemaphoreGive(g_task_sync_tools->mqtt_state_mutex); // mqtt using client event handler -> that function give sema -> deadlock if not give now
 
@@ -424,7 +424,7 @@ int mqtt_client_handle_client_subcribe_topic(const char* topic, mqtt_qos_type_t 
     // clear subcribing state
     CLR_BIT(s_mqtt_client_manager->mqtt_client_state, MQTT_PUBSUB_FLAG_STATE_SUBCRIBING);
 
-    ESP_LOGI("MQTT_LIB","PASS SUBCRIBE FUNTION");
+    ESP_LOGI("MQTT_LIB","PASS SUBCRIBE");
 
     // if failed return -1
     if(s_mqtt_client_manager->msg_id_sub == -1)

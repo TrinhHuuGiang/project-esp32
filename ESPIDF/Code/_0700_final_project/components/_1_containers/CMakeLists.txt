@@ -6,7 +6,6 @@
 
 idf_component_register(
     SRCS
-    "container.c"
     INCLUDE_DIRS
     "."
     REQUIRES

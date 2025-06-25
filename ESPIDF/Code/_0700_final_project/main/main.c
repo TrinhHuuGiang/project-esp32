@@ -210,10 +210,11 @@ void app_main(void)
 
 
         
-        // now start wifi        
+        // now start wifi in parallel task
         // start manager apsta driver
         {
-            BaseType_t check_task = xTaskCreate(wifi_apsta_mode_driver_manager, "wifi apsta manager", TASK_STACK_SIZE_EXTREM, NULL , TASK_PRIO_IMPORTANT , NULL );
+            BaseType_t check_task = xTaskCreate(wifi_apsta_mode_driver_manager, "wifi apsta manager", 
+                TASK_STACK_SIZE_EXTREM, NULL , TASK_PRIO_IMPORTANT , NULL );
             if (check_task != pdPASS){ret = MAIN_RET_START_WIFI_MANAGER_FAIL; goto main_log_restart;}
         }
  
@@ -248,14 +249,33 @@ void app_main(void)
         release_cs_spi_mutex();
     
     }
-
+    // mqtt regist event loop, start client
+    {
+        // regist event loop
+        if(mqtt_client_handle_regist_receive_event_task())
+            {ret = MAIN_RET_MQTT_CLIENT_REGIST_EVENTLOOP_FAIL; goto main_log_restart;}
+        
+        // start client
+        mqtt_client_command_state_t busy;
+        if(mqtt_client_handle_client_start(&busy))
+            {ret = MAIN_RET_MQTT_CLIENT_START_FAIL; goto main_log_restart;}
     
+    }
 
-    ESP_LOGI(main_tag,"mqttcl pass");
+    ESP_LOGI(main_tag,"mqttstart pass");
+
+
+
+
 
                                 /** =========================================
                                 * LAYER 3: External devices
                                 ------------------------------------------- */
+
+
+
+
+
 
 
                                 /** =========================================
@@ -271,7 +291,7 @@ void app_main(void)
     ESP_LOGI(main_tag,"w_dis pass");
 
     // Widget driver time realtime
-    if(widDr_update_rtc_to_DS3231()) {{ret = MAIN_RET_WID_REALTIME_FAIL; goto main_log_restart;};}
+    if(widDr_update_rtc_to_DS3231()) {ret = MAIN_RET_WID_REALTIME_FAIL; goto main_log_restart;}
 
     ESP_LOGI(main_tag,"w_rtc pass");
 
@@ -280,7 +300,10 @@ void app_main(void)
 
 
 
-    //
+    // sysDr_net_mqtt_manager (start driver, connect to broker, wait register topic form others logic blocks)
+    if(widDr_net_mqtt_manager_start_task()) {ret = MAIN_RET_WID_MQTT_MANAGER_FAIL; goto main_log_restart;}
+
+    ESP_LOGI(main_tag,"w_mqtt_man pass");
 
     /** ======================
     * LAYER 4.2: User/logic block init driver

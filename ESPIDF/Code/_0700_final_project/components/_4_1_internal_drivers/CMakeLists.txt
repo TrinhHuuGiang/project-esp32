@@ -3,6 +3,7 @@ idf_component_register(
     "widDr_time_realtime.c"
     "widDr_batterycheck.c"
     "widDr_display_performance.c"
+    "widDr_net_mqtt_manager.c"
 
     INCLUDE_DIRS
     "."
@@ -10,6 +11,7 @@ idf_component_register(
 
 
     # project components
+    _1_containers
     _1_reference_libs
     _1_task_sync_tools
     _2_1_internal_periphs
@@ -18,6 +20,6 @@ idf_component_register(
     
     i2c_ds3231 i2c_ssd1306 spi_sd_card #2.3
 
-    SNTP_rtc #2.4
+    SNTP_rtc MQTT_client_lib #2.4
     )
     

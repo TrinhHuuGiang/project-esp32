@@ -65,7 +65,7 @@
 
 #define WIDDR_DISPLAY_SSD1306_TASK_STACK  TASK_STACK_SIZE_HIGH // << overflow at TASK_STACK_SIZE_MEDIUM 
 
-#define WIDDR_DISPLAY_SSD1306_TASK_PRIO    TASK_PRIO_LOW 
+#define WIDDR_DISPLAY_SSD1306_TASK_PRIO   TASK_PRIO_LOW 
 
 typedef enum
 {
@@ -86,9 +86,14 @@ typedef enum
  * **********************************************************
  */
 
-// public function: init display and run background task
-// this function create driver handle display performance (6 line first)
-// return 0 is ok
+/**
+ * @brief public function: init display and run background task
+ * 
+ *  this function create driver handle display performance (6 line first)
+ * 
+ * @note only call 1 time
+ * @retval return 0 is ok
+ */
 uint8_t widDr_display_init_and_run(void);
 
 

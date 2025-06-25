@@ -95,8 +95,8 @@ typedef enum
 
 typedef enum
 {
-    MQTT_PUBSUB_QOS0 = 0,
-    MQTT_PUBSUB_QOS1,
+    MQTT_PUBSUB_QOS0 = 0, // send without response
+    MQTT_PUBSUB_QOS1,     // send untill broker feedback
     MQTT_PUBSUB_QOS2
 } mqtt_qos_type_t;
 
