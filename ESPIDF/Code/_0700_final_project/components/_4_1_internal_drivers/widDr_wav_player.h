@@ -82,7 +82,7 @@
 // task info
 #define WIDDR_AUDIO_TASK_NAME        "widDr_audio_task"
 #define WIDDR_AUDIO_TASK_STACK_SIZE  TASK_STACK_SIZE_EXTREM    // << stack over flow at TASK_STACK_SIZE_HIGH
-#define WIDDR_AUDIO_TASK_PRIORITY    TASK_PRIO_NOT_IMPORTANT
+#define WIDDR_AUDIO_TASK_PRIORITY    TASK_PRIO_NORMAL
 
 // nodelay : if u wanna test, uncomment below macro and xTaskDelay at the end of widDr_audio_player_init()
 // other wise : player will playback thoughout when have request then use default delay IDLE MODE below

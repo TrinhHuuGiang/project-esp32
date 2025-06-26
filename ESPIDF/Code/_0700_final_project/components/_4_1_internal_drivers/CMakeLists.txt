@@ -5,6 +5,7 @@ idf_component_register(
     "widDr_display_performance.c"
     "widDr_net_mqtt_manager.c"
     "widDr_wav_player.c"
+    "widDr_time_schedule.c"
 
     INCLUDE_DIRS
     "."

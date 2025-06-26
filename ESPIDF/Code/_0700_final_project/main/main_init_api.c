@@ -2,11 +2,6 @@
  * Definitions
  * **********************************************************/
 #include "main_init_api.h"
-#include "cJSON.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/stat.h>
 
 // === Folder & file definitions ===
 #define SYS_FOLD_ROOT       SPI_SD_CARD_ROOT_PATH_STRING      // "/sd_card0"

@@ -30,8 +30,8 @@ typedef struct node_time_schedule_t
 {
     struct tm schedule_time;
     uint8_t   timeout_f;        
-        // timeout flag: cleared by scheduler after timeout
-        // set by logic block after adding "schedule_time"
+        // timeout flag: sey by scheduler after timeout
+        // clear by logic block if adding a "schedule_time"
 
     struct node_time_schedule_t* next;
 } node_time_schedule_t;

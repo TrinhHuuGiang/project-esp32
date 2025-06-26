@@ -18,6 +18,11 @@ static node_mqtt_send_mes_t* g_send_container = NULL; // << container send mqtt,
 
 extern __task_sync_t* g_task_sync_tools; // get sync tools 
 
+
+static SemaphoreHandle_t g_recv_mutex = NULL; // Mutex to protect receive container
+static SemaphoreHandle_t g_send_mutex = NULL; // Mutex to protect send container
+
+
 /**
  * **********************************************************
  * Prototypes
@@ -36,6 +41,15 @@ static void widDr_net_mqtt_manager_task(void* arg);
 
 uint8_t widDr_net_mqtt_manager_start_task(void)
 {
+
+    // init mutex
+    g_recv_mutex = xSemaphoreCreateMutex();
+    if (!g_recv_mutex) return 1;
+    g_send_mutex = xSemaphoreCreateMutex();
+
+    if (!g_send_mutex) return 2;
+
+    // init task
     BaseType_t check_task = xTaskCreate(
         widDr_net_mqtt_manager_task,
         "mqttManagerTask",
@@ -45,7 +59,7 @@ uint8_t widDr_net_mqtt_manager_start_task(void)
         NULL
     );
 
-    return (check_task == pdPASS) ? 0 : 1;
+    return (check_task == pdPASS) ? 0 : 3;
 }
 
 /**
@@ -61,6 +75,10 @@ static void widDr_net_mqtt_manager_task(void* arg)
     {
 
         ESP_LOGE(WIDDR_MQTT_TAG, "mqtt task loop");
+
+
+
+
 
         //==========================================================
         //========================== Reconnect phase======
@@ -96,36 +114,58 @@ static void widDr_net_mqtt_manager_task(void* arg)
             ESP_LOGI(WIDDR_MQTT_TAG, "Require reconnect successfully. Resubscribing topics...");
             
 
-            // Resubscribe all topics in receive container
-            node_mqtt_recv_mes_t* slot;
-            LL_FOREACH(g_recv_container, slot)
+
+            // Resubscribe all topics in receive 
+            
             {
-                uint8_t retry_num = 5;
 
-                while(mqtt_client_handle_client_subcribe_topic(slot->topic, WIDDR_NET_MQTT_RECV_MES_QOS))
+
+
+                xSemaphoreTake(g_recv_mutex, portMAX_DELAY);    // <<<<<<<<<<<<<<<<<<<<<<<<<< take
+
+
+
+                node_mqtt_recv_mes_t* slot;
+                LL_FOREACH(g_recv_container, slot)
                 {
-                    // maybe reconnect not already success
-                    // mqtt_client_handle_client_subcribe_topic is a blocking function, 
-                    //      so if it return !0 -> subcribe fail maybe by not reconnect success
+                    uint8_t retry_num = 5;
 
-                    ESP_LOGE(WIDDR_MQTT_TAG,"Retry subcribe...%d",retry_num);
-                    vTaskDelay(1000);
-
-                    retry_num --;
-                    if(!retry_num) // retry = 0 -> need reconnect
+                    while(mqtt_client_handle_client_subcribe_topic(slot->topic, WIDDR_NET_MQTT_RECV_MES_QOS))
                     {
-                        ESP_LOGE(WIDDR_MQTT_TAG,"Try reconnect...");
-                        // goto mqtt_reconnnect; <== wrong solution :) stack maybe not auto delete
-                        // => stack overflow inthe future if jump to reconnect here
+                        // maybe reconnect not already success
+                        // mqtt_client_handle_client_subcribe_topic is a blocking function, 
+                        //      so if it return !0 -> subcribe fail maybe by not reconnect success
 
-                        count_reconn=0; // reconnect
-                        goto mqttdriver_next_loop;// << solution jump to next loop by goto to end
-                                                // because LL_FOREACH + while is 2 loop
+                        ESP_LOGE(WIDDR_MQTT_TAG,"Retry subcribe...%d",retry_num);
+                        vTaskDelay(1000);
+
+                        retry_num --;
+                        if(!retry_num) // retry = 0 -> need reconnect
+                        {
+                            ESP_LOGE(WIDDR_MQTT_TAG,"Try reconnect...");
+                            // goto mqtt_reconnnect; <== wrong solution :) stack maybe not auto delete
+                            // => stack overflow inthe future if jump to reconnect here
+
+                            count_reconn=0; // reconnect
+
+
+
+                            xSemaphoreGive(g_recv_mutex); // <<<<<<<<<<<<<<<<<<<<<<<<<< give
+
+
+
+
+                            goto mqttdriver_next_loop;// << solution jump to next loop by goto to end
+                                                    // because LL_FOREACH + while is 2 loop
+                        }
                     }
+
                 }
 
-            }
 
+                xSemaphoreGive(g_recv_mutex);  // <<<<<<<<<<<<<<<<<<<<<<<<<< give
+
+            }
             ESP_LOGI(WIDDR_MQTT_TAG, "All topics resubscribed.");
         }    
 
@@ -146,6 +186,11 @@ static void widDr_net_mqtt_manager_task(void* arg)
         mqtt_data_node_t* msg = mqtt_client_handle_read_next_data();
         if (msg != NULL)
         {
+
+
+            xSemaphoreTake(g_recv_mutex, portMAX_DELAY); // <<<<<<<<<<<<<<<<<<<<<<<<<< take
+
+
             node_mqtt_recv_mes_t* slot;
             LL_FOREACH(g_recv_container, slot)
             {
@@ -161,6 +206,11 @@ static void widDr_net_mqtt_manager_task(void* arg)
                     break;
                 }
             }
+
+
+            xSemaphoreGive(g_recv_mutex);// <<<<<<<<<<<<<<<<<<<<<<<<<< give
+
+
             free(msg->topic);
             free(msg->data);
             free(msg);
@@ -179,6 +229,9 @@ static void widDr_net_mqtt_manager_task(void* arg)
         // clear when send successful (other wise try at next loop)
         //==========================================================
 
+
+        xSemaphoreTake(g_send_mutex, portMAX_DELAY);
+
         node_mqtt_send_mes_t* s;
         LL_FOREACH(g_send_container, s)
         {
@@ -191,6 +244,8 @@ static void widDr_net_mqtt_manager_task(void* arg)
             }
         }
 
+
+        xSemaphoreGive(g_send_mutex);
 
 
         // Sleep to yield CPU and avoid busy looping
@@ -218,7 +273,13 @@ node_mqtt_recv_mes_t* widDr_net_mqtt_manager_register_receive_slot(const char* t
     slot->topic = strdup(topic);
     slot->message = NULL;
     slot->read_f = 0;
+
+
+    xSemaphoreTake(g_recv_mutex, portMAX_DELAY);
     LL_APPEND(g_recv_container, slot);
+    xSemaphoreGive(g_recv_mutex);
+
+
     return slot;
 }
 
@@ -227,12 +288,23 @@ node_mqtt_recv_mes_t* widDr_net_mqtt_manager_register_receive_slot(const char* t
 // Check and get message from a slot, return 1 if new message, 0 if nothing
 bool widDr_net_mqtt_manager_check_and_get_message(node_mqtt_recv_mes_t* slot, char** out_message)
 {
-    if (slot == NULL || slot->read_f == 0) return false;
+    bool result = false;
+    
+    xSemaphoreTake(g_recv_mutex, portMAX_DELAY);
 
-    // new message
-    *out_message = strdup(slot->message);
-    slot->read_f = 0;
-    return true;
+
+    if(slot->read_f) // if new message
+    {
+        *out_message = strdup(slot->message);
+        slot->read_f = 0;
+        result = true;
+    }
+    
+    
+    xSemaphoreGive(g_recv_mutex);
+
+    return result;
+
 }
 
 
@@ -246,7 +318,15 @@ node_mqtt_send_mes_t* widDr_net_mqtt_manager_register_send_slot(const char* topi
     slot->topic = strdup(topic);
     slot->message = NULL;
     slot->sent_f = 0;
+
+
+    xSemaphoreTake(g_send_mutex, portMAX_DELAY);
+
     LL_APPEND(g_send_container, slot);
+
+
+    xSemaphoreGive(g_send_mutex);
+
     return slot;
 }
 
@@ -258,12 +338,19 @@ bool widDr_net_mqtt_manager_write_and_request_send(node_mqtt_send_mes_t* slot, c
     // slot not available 
     if (!slot) return false;
 
+
     // update message
+
+    xSemaphoreTake(g_send_mutex, portMAX_DELAY);
+
     if (slot->message) free(slot->message);
+    
     slot->message = strdup(message);
 
     // set sent flag for driver handle
     slot->sent_f = 1;
+
+    xSemaphoreGive(g_send_mutex);
 
     return true;
 }

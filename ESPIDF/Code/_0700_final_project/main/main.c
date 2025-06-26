@@ -306,14 +306,12 @@ void app_main(void)
     ESP_LOGI(main_tag,"w_mqtt_man pass");
 
 
-
-
-    // sysDr_http_update_new_config (update systemfile by app)
-
-
-
-
     // time scheduler
+    if(widDr_time_scheduler_start_task()) {ret = MAIN_RET_WID_TIMER_SCHEDULER_FAIL; goto main_log_restart;}
+
+    ESP_LOGI(main_tag,"w_schedule pass");
+
+
 
 
     // speaker wav
@@ -322,6 +320,18 @@ void app_main(void)
     ESP_LOGI(main_tag,"w_wav pass");
 
     if(widDr_audio_player_set_file("/sd_card0/prj_dt/rsrc_fd/hello.wav")){ret = MAIN_RET_WID_WAV_TEST_FAIL; goto main_log_restart;}
+
+
+
+
+
+
+        
+    // sysDr_http_update_new_config (update systemfile by app)
+
+    
+
+
 
     /** ======================
     * LAYER 4.2: User/logic block init driver

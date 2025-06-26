@@ -20,8 +20,11 @@
 // esp32
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/semphr.h"
 
 // user define
+
+
 #include "_peripherals_err.h"
 #include "__task_sync.h"
 
