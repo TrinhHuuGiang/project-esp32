@@ -290,13 +290,13 @@ void app_main(void)
 
     ESP_LOGI(main_tag,"w_dis pass");
 
+
+
+
     // Widget driver time realtime
     if(widDr_update_rtc_to_DS3231()) {ret = MAIN_RET_WID_REALTIME_FAIL; goto main_log_restart;}
 
     ESP_LOGI(main_tag,"w_rtc pass");
-
-
-    // sysDr_http_update_new_config (update systemfile by app)
 
 
 
@@ -304,6 +304,24 @@ void app_main(void)
     if(widDr_net_mqtt_manager_start_task()) {ret = MAIN_RET_WID_MQTT_MANAGER_FAIL; goto main_log_restart;}
 
     ESP_LOGI(main_tag,"w_mqtt_man pass");
+
+
+
+
+    // sysDr_http_update_new_config (update systemfile by app)
+
+
+
+
+    // time scheduler
+
+
+    // speaker wav
+    if(widDr_audio_player_init()){ret = MAIN_RET_WID_WAV_PLAYER_FAIL; goto main_log_restart;}
+
+    ESP_LOGI(main_tag,"w_wav pass");
+
+    if(widDr_audio_player_set_file("/sd_card0/prj_dt/rsrc_fd/hello.wav")){ret = MAIN_RET_WID_WAV_TEST_FAIL; goto main_log_restart;}
 
     /** ======================
     * LAYER 4.2: User/logic block init driver

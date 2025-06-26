@@ -204,8 +204,8 @@ uint8_t gpio_74HC595_get_current_output_bit(uint32_t* reg_state);
  * Pins value: Input OR (1/0) represent for what type of logic set for these pin
  * 
  * Execute:
- * + add value to transaction -> shift out
- * + latch value
+ * + add value to transaction -> shift out (block spi bus)
+ * + latch value (block spi bus)
  * + update reg_state
  * 
  * Note logic:

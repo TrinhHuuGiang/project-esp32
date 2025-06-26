@@ -73,6 +73,7 @@
 #include "widDr_time_realtime.h"
 #include "widDr_display_performance.h"
 #include "widDr_net_mqtt_manager.h"
+#include "widDr_wav_player.h"
 
 // layer 4.2 - external drivers
 // #include ""
@@ -138,6 +139,9 @@ typedef enum
 
     MAIN_RET_WID_MQTT_MANAGER_FAIL,//mqtt manager
 
+    
+    MAIN_RET_WID_WAV_PLAYER_FAIL,// wav audio player
+    MAIN_RET_WID_WAV_TEST_FAIL,
 
     // main
     MAIN_RET_FIX_MISSING_FILE_FOLDER_FAIL,//main

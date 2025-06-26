@@ -4,6 +4,7 @@ idf_component_register(
     "widDr_batterycheck.c"
     "widDr_display_performance.c"
     "widDr_net_mqtt_manager.c"
+    "widDr_wav_player.c"
 
     INCLUDE_DIRS
     "."
@@ -16,7 +17,7 @@ idf_component_register(
     _1_task_sync_tools
     _2_1_internal_periphs
 
-    adc_74HC4067 i2s_max98357 #2.2
+    adc_74HC4067 i2s_max98357 gpio_74HC595 #2.2
     
     i2c_ds3231 i2c_ssd1306 spi_sd_card #2.3
 

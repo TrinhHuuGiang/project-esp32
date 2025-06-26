@@ -11,14 +11,15 @@
 // === Folder & file definitions ===
 #define SYS_FOLD_ROOT       SPI_SD_CARD_ROOT_PATH_STRING      // "/sd_card0"
 #define SYS_FOLD_PROJECT    "/prj_dt"
+
 #define SYS_FOLD_SYSTEM     "/sys_fd"
 #define SYS_FOLD_RESOURCE   "/rsrc_fd"
 
 
-#define SYS_FILE_WIFI        "/wf_cf.dat"
-#define SYS_FILE_MQTT_CERT   "/mqttcert.pem"
+#define SYS_FILE_WIFI         "/wf_cf.dat"
+#define SYS_FILE_MQTT_CERT    "/mqttcert.pem"
 #define SYS_FILE_MQTT_CONFIG  "/mqtt_cf.dat"
-#define SYS_FILE_LOGIC_INIT  "/lgb_init.dat"
+#define SYS_FILE_LOGIC_INIT   "/lgb_init.dat"
 
 
 

@@ -31,7 +31,13 @@
 #define I2S_MASTER_OUTPUT_PORT            I2S_NUM_0
 
 #define I2S_MASTER_DMA_BUF_COUNT          8
-#define I2S_MASTER_DMA_BUF_LEN            512
+#define I2S_MASTER_DMA_BUF_LEN            512 // == block size 4x512 = 2048 bytes
+
+#define I2S_MASTER_DMA_SUPPLY_BUF_MAX_RECOMMEND     (I2S_MASTER_DMA_BUF_COUNT * \
+                                                 (4*I2S_MASTER_DMA_BUF_LEN) ) 
+                                            // recommend buffer when supply for
+                                            // i2s_master_output_write()
+#define I2S_MASTER_DMA_SUPPLY_TIME_MAX_RECOMMEND  portMAX_DELAY
 
 
 #define I2S_MASTER_BCK_PIN                CONFIG_I2S_MASTER_BCK_PIN   
@@ -77,10 +83,17 @@ void release_i2s_mutex();
  * */
 _peripherals_err_t i2s_master_output_init(const i2s_master_output_config_t *cfg);
 
-// Write PCM buffer (blocking)
+/**
+ * @brief Write PCM buffer (blocking by i2s_write)
+ * @note If timeout too short, pcm_data maybe not fush complete in to I2S DMA buffer
+ * @note Recommend pcm_data buffer == I2S_MASTER_DMA_SUPPLY_BUF_RECOMMEND
+ * @note Recommend timeout portMAX_DELAY (push untill run out of pcm_data)
+ * @note but block if i2s dma not yet consumed
+ * 
+ *  */ 
 _peripherals_err_t i2s_master_output_write(const void *pcm_data, size_t size, TickType_t timeout);
 
-// Stop and uninstall I2S
+// Stop and uninstall I2S, clean DMA buffer
 void i2s_master_output_deinit(void);
 
 

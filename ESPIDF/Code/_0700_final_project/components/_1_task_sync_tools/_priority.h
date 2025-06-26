@@ -20,5 +20,6 @@
 #define TASK_STACK_SIZE_MEDIUM    1024
 #define TASK_STACK_SIZE_HIGH      2048
 #define TASK_STACK_SIZE_EXTREM    4096
+#define TASK_STACK_SIZE_GIANT     5120 // :) no stack now must use this
 
 #endif

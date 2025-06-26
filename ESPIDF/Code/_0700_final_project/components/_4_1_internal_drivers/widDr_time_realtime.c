@@ -20,6 +20,8 @@ extern __task_sync_t* g_task_sync_tools; // get sync tools
 // driver check sntp untill success then update into DS3231 clock
 static void widDr_realtime_update(void* arg);
 
+
+
 /**
  * **********************************************************
  * Codes
