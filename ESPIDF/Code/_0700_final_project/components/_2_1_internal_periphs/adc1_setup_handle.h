@@ -1,3 +1,9 @@
+/*
+    Copyright (C) 2025  Giang Trinh
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
 // Only using ADC1. ADC2 can't be used when Wi-Fi is active
 // using this library for 74hc4067.
 

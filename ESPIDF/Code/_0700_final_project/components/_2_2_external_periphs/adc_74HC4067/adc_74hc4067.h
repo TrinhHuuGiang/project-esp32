@@ -1,3 +1,10 @@
+/*
+    Copyright (C) 2025  Giang Trinh
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 // this external periphs depend
 // SPI: on series 74hc595 select S0->S3 ( output port 0->3)
 //      note: 74hc595 has to init before use this library

@@ -1,3 +1,10 @@
+/*
+    Copyright (C) 2025  Giang Trinh
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 // this example try send 1-> 9 to http server, tested on HIVEMQ cluster
 
 // connect to MQTT Cloud using MQTT and publish a message to a topic

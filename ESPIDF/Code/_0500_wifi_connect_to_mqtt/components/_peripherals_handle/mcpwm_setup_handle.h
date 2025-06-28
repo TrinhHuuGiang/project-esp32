@@ -1,3 +1,10 @@
+/*
+    Copyright (C) 2025  Giang Trinh
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 // ESP32 contains two MCPWM peripheral uints: MCPWM0 and MCPWM
 // each uint have 3 A/B pair channel work together control by 3 timers and 3 PWM operators
 // this library just focus on 1 unit

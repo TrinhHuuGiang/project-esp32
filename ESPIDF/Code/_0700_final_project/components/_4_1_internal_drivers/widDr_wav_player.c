@@ -1,3 +1,10 @@
+/*
+    Copyright (C) 2025  Giang Trinh
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 // API:
 //   - start driver handle open 1 wav at a time
 //   - APIs control force change wav file by write file name to buffer

@@ -1,3 +1,11 @@
+/*
+    Copyright (C) 2025  Giang Trinh
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+
 // total :  2 line perform (heap, bat), 
 //      1 blank line  (reserve)
 //          2 line time (day, time), 

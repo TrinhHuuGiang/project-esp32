@@ -1,3 +1,10 @@
+/*
+    Copyright (C) 2025  Giang Trinh
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 // althought we can create lot of mqtt client at a time
 // this library only subport 1 client
 

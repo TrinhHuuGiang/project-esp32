@@ -1,3 +1,11 @@
+/*
+    Copyright (C) 2025  Giang Trinh
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+
 #ifndef _I2C_MASTER_HANDLE_H_
 #define _I2C_MASTER_HANDLE_H_
 

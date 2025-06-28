@@ -1,3 +1,11 @@
+/*
+    Copyright (C) 2025  Giang Trinh
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+
 // Note: Communicate with only one device at a time
 // Default: using SPI3 (VSPI)
 // Use SPI master in a dedicated task to avoid busy waiting; transactions will use polling mode.

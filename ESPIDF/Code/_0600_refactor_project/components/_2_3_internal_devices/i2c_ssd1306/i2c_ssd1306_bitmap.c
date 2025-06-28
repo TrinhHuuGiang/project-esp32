@@ -1,3 +1,10 @@
+/*
+    Copyright (C) 2025  Giang Trinh
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 #include "i2c_ssd1306_bitmap.h"
 
 const uint8_t ASCII_normal_8x8_bitmap[ASCII_NORMAL_8x8_BMP_QUANTITY][8] =

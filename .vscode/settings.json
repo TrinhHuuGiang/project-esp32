@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "spi_master_handle.h": "c",
-        "i2c_master_handle.h": "c"
+        "i2c_master_handle.h": "c",
+        "stdio.h": "c"
     }
 }

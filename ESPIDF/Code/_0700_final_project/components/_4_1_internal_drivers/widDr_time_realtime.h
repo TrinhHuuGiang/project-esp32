@@ -1,3 +1,11 @@
+/*
+    Copyright (C) 2025  Giang Trinh
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+
 // library providing api to call driver running parallel with main task
 // automatically check network time and update to ds3231 then finish
 // Fatal failures can be reported via the "__task_sync_t->err_flag"

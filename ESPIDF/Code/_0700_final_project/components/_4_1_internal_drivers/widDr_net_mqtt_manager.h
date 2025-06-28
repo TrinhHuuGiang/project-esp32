@@ -1,3 +1,14 @@
+/*
+    Copyright (C) 2025  Giang Trinh
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+
+// Document about topic length limit my hiveMQ
+//  = https://docs.hivemq.com/hivemq/latest/user-guide/restrictions.html
+
 /// Function
 // 
 // - 1 driver runtime and check 2 container
@@ -28,7 +39,7 @@
 // - Note: To simplify the system I will not provide api to modify the file system
 //      So after reset all container slot will clear
 //
-// - QOS i will set default is QOS2
+// - QOS i will set default is QOS1
 // - Recover mode: retain message == true and re subcribe topic after time setup 
 
 
@@ -87,22 +98,24 @@
 #define WIDDR_NET_MQTT_TASK_STACK  TASK_STACK_SIZE_HIGH
                                     // handle mqtt task, manage 2 container linked list
 #define WIDDR_NET_MQTT_TASK_PRIO   TASK_PRIO_IMPORTANT
-#define WIDDR_NET_MQTT_TASK_SLEEP  500 // 500ms, cooldown cpu, reduce if lots of request
+#define WIDDR_NET_MQTT_TASK_SLEEP  1000 // 1s, cooldown cpu, reduce if lots of request
+                                            // then comback to handle new request
 
 // QOS
 
-#define WIDDR_NET_MQTT_SEND_MES_QOS      MQTT_PUBSUB_QOS2  // set subcriber QOS2
+#define WIDDR_NET_MQTT_SEND_MES_QOS      MQTT_PUBSUB_QOS1  // set subcriber QOS1: try send success at least 1
+                                                            // but maybe broker handle > 1 time
 #define WIDDR_NET_MQTT_SEND_MES_RETAIN   MQTT_PUBSUB_RETAIN_MSG
 
-#define WIDDR_NET_MQTT_RECV_MES_QOS      MQTT_PUBSUB_QOS2  // set broker maximum QOS2
+#define WIDDR_NET_MQTT_RECV_MES_QOS      MQTT_PUBSUB_QOS2  // set maximum can get from broker is QOS2
 
-#define WIDDR_NET_MQTT_RE_SUBCRIBE_TIME  120000 // re subcribe after 2 minute
+#define WIDDR_NET_MQTT_RE_SUBCRIBE_TIME  120000 // re subcribe after 5 minute
 
 #define WIDDR_NET_MQTT_RE_SUBCRIBE_COUNTDOWN  \
                 ((int)((float)WIDDR_NET_MQTT_RE_SUBCRIBE_TIME / WIDDR_NET_MQTT_TASK_SLEEP))
-                                    // re subcribe after 1 minute
+                                    // re subcribe after 5 minute
                     
-#define WIDDR_NET_MQTT_TRY_RECONNECT_TIME_DELAY 2000 // 2s then reconnect if lost connect
+#define WIDDR_NET_MQTT_TRY_RECONNECT_TIME_DELAY 3000 // 3s then reconnect if lost connect
                     
 
 /**

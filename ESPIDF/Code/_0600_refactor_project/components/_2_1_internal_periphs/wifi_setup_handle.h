@@ -1,3 +1,10 @@
+/*
+    Copyright (C) 2025  Giang Trinh
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 // Note: 
 // + go to Compiler config -> Wi-Fi -> WiFi NVS flash , then active NVS flash to save SSID and password inform
 // + this library will init LwIP and event loop for event task but not have a function to free them.

@@ -1,3 +1,10 @@
+/*
+    Copyright (C) 2025  Giang Trinh
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 // This library concentrate on GPIO using general perpose I/O funtion
 // if the pad of pin GPIO linked with another peripheral by GPIO matrix or config the IO_MUX, 
 // the functions below may unused because digital read, write can be block by some peripherals

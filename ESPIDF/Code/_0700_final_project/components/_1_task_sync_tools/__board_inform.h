@@ -5,6 +5,15 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-// Simple APIs reset factory by delete all system file then app_main will recover by it apis
-//  - see main_init_api.h at main folder
-// error then return if can't connect file system
+
+// some identification information for the circuit
+
+
+#ifndef _DEV_BOARD_INFORM_
+#define _DEV_BOARD_INFORM_
+
+// identification code
+#define DEV_BOARD_UNIQUE_ID  "B0"
+
+
+#endif

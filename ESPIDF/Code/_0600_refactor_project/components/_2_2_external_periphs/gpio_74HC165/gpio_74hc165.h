@@ -1,3 +1,11 @@
+/*
+    Copyright (C) 2025  Giang Trinh
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+
 // this library code for series 4 ic 74hc165 to expand input signal to 32 pin
 // available for : push button, keypad, and another logic signals have short temporary status change
 

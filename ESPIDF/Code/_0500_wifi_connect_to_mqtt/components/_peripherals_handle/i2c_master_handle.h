@@ -1,3 +1,10 @@
+/*
+    Copyright (C) 2025  Giang Trinh
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 // note: Only communicate with only 1 device at a time
 // default using i2c num 0
 // use i2c master in special task to avoid busy waiting 

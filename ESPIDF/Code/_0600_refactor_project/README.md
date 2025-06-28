@@ -1,3 +1,12 @@
+``` c
+/*
+    Copyright (C) 2025  Giang Trinh
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+```
+
 # Project Layered Architecture
 ## Layer 1: **System architecture infrastructure**
 - [Reference libraries](./components/_00_reference_libs/README.md)

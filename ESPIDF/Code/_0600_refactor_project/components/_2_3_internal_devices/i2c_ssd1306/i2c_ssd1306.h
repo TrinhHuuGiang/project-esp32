@@ -1,3 +1,10 @@
+/*
+    Copyright (C) 2025  Giang Trinh
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 // ssd1306 library for Oled 128x64
 // address available: 0x3C, 0x3D
 #ifndef _I2C_SSD1306_H_

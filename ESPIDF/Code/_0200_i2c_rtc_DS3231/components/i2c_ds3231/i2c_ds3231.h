@@ -1,3 +1,11 @@
+/*
+    Copyright (C) 2025  Giang Trinh
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+
 // DS3231 library for DS3231 rtc module
 // address available 1101000 (0x68)
 // this libraries only interact with 16 first register of DS3231. (ignore 10H-> 12H for temperature function)

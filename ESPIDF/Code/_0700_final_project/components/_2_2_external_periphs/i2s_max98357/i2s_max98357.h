@@ -1,3 +1,10 @@
+/*
+    Copyright (C) 2025  Giang Trinh
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 // add function on off speaker
 // depend on "i2s_master_output.h"
 // this library expand API help I2S - Inter-Integrated Circuit Sound

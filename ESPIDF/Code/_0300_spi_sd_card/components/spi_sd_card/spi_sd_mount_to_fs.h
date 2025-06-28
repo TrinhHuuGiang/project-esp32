@@ -1,3 +1,12 @@
+/*
+    Copyright (C) 2025  Giang Trinh
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+
+
 // note that the spi module must config before using this library
 // this lib will interact with sd card and using pin 5 as default CS
 #ifndef _SPI_SD_CARD_H_

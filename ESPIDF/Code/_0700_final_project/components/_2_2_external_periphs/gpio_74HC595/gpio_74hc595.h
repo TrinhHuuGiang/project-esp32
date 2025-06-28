@@ -1,3 +1,10 @@
+/*
+    Copyright (C) 2025  Giang Trinh
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 // this library code for series 4 ic 74hc565 to expand output signal to 32 pin
 // depend on internal peripheral: SPI, GPIO (latch clock)
 // hardware design: ESP32 -> 595 (no1) -> no2 -> no3 -> no4
