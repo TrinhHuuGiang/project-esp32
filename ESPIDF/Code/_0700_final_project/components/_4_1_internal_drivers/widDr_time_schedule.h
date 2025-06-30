@@ -68,7 +68,7 @@
 #include "utlist.h"
 
 
-#define WIDDR_TIME_TASK_STACK  TASK_STACK_SIZE_MEDIUM // 
+#define WIDDR_TIME_TASK_STACK  TASK_STACK_SIZE_HIGH // TASK_STACK_SIZE_MEDIUM was over flow
 #define WIDDR_TIME_TASK_PRIO   TASK_PRIO_NORMAL       //  
 #define WIDDR_TIME_TASK_SLEEP  1000 // ms  -> check time each second
 

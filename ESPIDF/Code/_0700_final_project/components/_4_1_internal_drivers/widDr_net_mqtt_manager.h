@@ -40,7 +40,9 @@
 //      So after reset all container slot will clear
 //
 // - QOS i will set default is QOS1
-// - Recover mode: retain message == true and re subcribe topic after time setup 
+// - Recover mode:
+//   + Esp32 retain message == true and re subcribe topic after time setup 
+//   + UI APPlication setup: retain message == true and re subcribe topic after time setup 
 
 
 
@@ -105,6 +107,7 @@
 
 #define WIDDR_NET_MQTT_SEND_MES_QOS      MQTT_PUBSUB_QOS1  // set subcriber QOS1: try send success at least 1
                                                             // but maybe broker handle > 1 time
+
 #define WIDDR_NET_MQTT_SEND_MES_RETAIN   MQTT_PUBSUB_RETAIN_MSG
 
 #define WIDDR_NET_MQTT_RECV_MES_QOS      MQTT_PUBSUB_QOS2  // set maximum can get from broker is QOS2

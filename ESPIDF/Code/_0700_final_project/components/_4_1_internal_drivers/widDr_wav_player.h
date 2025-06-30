@@ -9,13 +9,13 @@
 // API:
 //   - start driver handle open 1 wav at a time
 //   - APIs control force change wav file by write file name to buffer
-//   - APIs control force delete file name then driver stop speaker I2S
 
 
 
 // Test on SDcard class 4:
 //      - maximum : 1MHz SPI -> test at 4MHz sometime can't fread, must fclose then reopen -> very harm for card
 //      - buffer size : 2048 -> at 4096 some time got " diskio_sdmmc: sdmmc_read_blocks failed (263) "
+//      - test at wav 8khz ok but at 12khz the sound is delay, and glitch
 
 
 // [Ideal condition for stable WAV playback using I2S + SPI (1 MHz)]
@@ -94,7 +94,7 @@
 
 // nodelay : if u wanna test, uncomment below macro and xTaskDelay at the end of widDr_audio_player_init()
 // other wise : player will playback thoughout when have request then use default delay IDLE MODE below
-// #define WIDDR_AUDIO_TASK_DELAY       10  // should >=10ms. otherwise remove pdMS_TO_TICKS by tick
+#define WIDDR_AUDIO_TASK_DELAY       10  // should >=10ms. otherwise remove pdMS_TO_TICKS by tick
                             // 10ms is limit of vTaskDelay at setting configTICK_RATE_HZ 100
                             // if play too gleak, use tick instead of pdMS_TO_TICKS
 
@@ -148,7 +148,8 @@ uint8_t widDr_audio_player_set_file(const char* wav_file_path);
 
 /**
  * @brief Stop sound current wav file
- * 
+ * @note this function not available if u have a file name is "0"
+ * @note this function try write "0" as a no exist file then driver stop play audio
  */
 void widDr_audio_player_stop(void);
 

@@ -379,7 +379,14 @@ static void audio_player_task(void *param)
                 ESP_LOGI(WIDDR_WAV_PLAYER,"no request, no play, idle time");
 
                 // continue stop play
+                xSemaphoreGive(g_mutex); // << idont know uwhy but if no give mutex, although
+                                        // we have xSemaphoreGive at goto delay_audio_task
+                                        // other require new music will lock infitity :) wtf
+
                 vTaskDelay(WIDDR_AUDIO_TASK_IDLE_DELAY); // delay 500ms
+
+                xSemaphoreTake(g_mutex, portMAX_DELAY);
+
                 goto delay_audio_task; //no new request, no playing -> continue stop play
             }
 
@@ -741,7 +748,10 @@ static void audio_player_task(void *param)
 delay_audio_task:
 
         xSemaphoreGive(g_mutex);
-        // vTaskDelay(pdMS_TO_TICKS(WIDDR_AUDIO_TASK_DELAY)); // 10ms
+        vTaskDelay(pdMS_TO_TICKS(WIDDR_AUDIO_TASK_DELAY)); // 10ms
+        // oh 1 get an error , when task run continous, it can take sema veryfast
+        // i'm not sure it is a deadlock but if not delay, other request APIs can't execute
+        // and block 
     }
 
     // end task
@@ -779,7 +789,11 @@ uint8_t widDr_audio_player_set_file(const char *wav_file_path)
 {
     if (!wav_file_path) return 1;
 
+    // ESP_LOGI("debug","Heelee");
+
     xSemaphoreTake(g_mutex, portMAX_DELAY);
+
+    fprintf(stderr, "setting file audio [%s]\n", wav_file_path);
 
     strncpy(g_requested_path, wav_file_path, WIDDR_AUDIO_CMD_MAX_PATH - 1);
 
@@ -795,7 +809,8 @@ void widDr_audio_player_stop(void)
 {
     xSemaphoreTake(g_mutex, portMAX_DELAY);
 
-    g_requested_path[0] = '\0';
+    g_requested_path[0] = '0';
+    g_requested_path[1] = '\0';
     
     xSemaphoreGive(g_mutex);
 }

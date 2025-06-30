@@ -329,7 +329,7 @@ void app_main(void)
 
     if(widDr_audio_player_set_file("/sd_card0/prj_dt/rsrc_fd/hello.wav")){ret = MAIN_RET_WID_WAV_TEST_FAIL; goto main_log_restart;}
 
-
+    ESP_LOGI(main_tag,"w_wav test audio pass");
 
 
 

@@ -6,6 +6,10 @@ cmake_minimum_required(VERSION 3.5)
 
 
 # include component
+# 2 type add a component
+# - create a folder in 'components', input file your code 
+# - create a folder in 'components' but separate in child folder
+#      -> this situation need add a link here to notify CMake know have some special parent folder
 set(EXTRA_COMPONENT_DIRS
     "${CMAKE_SOURCE_DIR}/components/_2_2_external_periphs"
     "${CMAKE_SOURCE_DIR}/components/_2_3_internal_devices"
@@ -14,7 +18,7 @@ set(EXTRA_COMPONENT_DIRS
     # "${CMAKE_SOURCE_DIR}/components/_3_external_devices"
 
     # "${CMAKE_SOURCE_DIR}/components/_4_1_internal_drivers"
-    # "${CMAKE_SOURCE_DIR}/components/_4_2_external_driver"
+    # "${CMAKE_SOURCE_DIR}/components/_4_2_external_drivers"
     )
 
 

@@ -211,8 +211,8 @@ uint8_t main_update_wifi_apsta_from_file()
     free(json_str);
     if (!root) return 3;
 
-    const cJSON *ap = cJSON_GetObjectItem(root, "ap");
-    const cJSON *sta = cJSON_GetObjectItem(root, "sta");
+    cJSON *ap = cJSON_GetObjectItem(root, "ap");
+    cJSON *sta = cJSON_GetObjectItem(root, "sta");
 
     if (!cJSON_IsObject(ap) || !cJSON_IsObject(sta)) {
         cJSON_Delete(root);
@@ -220,8 +220,8 @@ uint8_t main_update_wifi_apsta_from_file()
     }
 
     // === AP Config ===
-    const cJSON *ap_ssid = cJSON_GetObjectItem(ap, "ssid");
-    const cJSON *ap_pass = cJSON_GetObjectItem(ap, "pass");
+    cJSON *ap_ssid = cJSON_GetObjectItem(ap, "ssid");
+    cJSON *ap_pass = cJSON_GetObjectItem(ap, "pass");
 
     if (!cJSON_IsString(ap_ssid) || !cJSON_IsString(ap_pass)) {
         cJSON_Delete(root);
@@ -234,9 +234,9 @@ uint8_t main_update_wifi_apsta_from_file()
     }
 
     // === STA Config ===
-    const cJSON *sta_ssid = cJSON_GetObjectItem(sta, "ssid");
-    const cJSON *sta_pass = cJSON_GetObjectItem(sta, "pass");
-    const cJSON *sta_bssid = cJSON_GetObjectItem(sta, "bssid");
+    cJSON *sta_ssid = cJSON_GetObjectItem(sta, "ssid");
+    cJSON *sta_pass = cJSON_GetObjectItem(sta, "pass");
+    cJSON *sta_bssid = cJSON_GetObjectItem(sta, "bssid");
 
     if (!cJSON_IsString(sta_ssid) || !cJSON_IsString(sta_pass) || !cJSON_IsString(sta_bssid)) {
         cJSON_Delete(root);
@@ -313,9 +313,9 @@ uint8_t main_update_mqtt_config_from_file_and_init_mqtt_client()
     free(json_str);
     if (!root) return 3;
 
-    const cJSON *broker = cJSON_GetObjectItem(root, "broker");
-    const cJSON *username = cJSON_GetObjectItem(root, "username");
-    const cJSON *password = cJSON_GetObjectItem(root, "password");
+    cJSON *broker = cJSON_GetObjectItem(root, "broker");
+    cJSON *username = cJSON_GetObjectItem(root, "username");
+    cJSON *password = cJSON_GetObjectItem(root, "password");
 
     if (!cJSON_IsString(broker) || !cJSON_IsString(username) || !cJSON_IsString(password)) {
         cJSON_Delete(root);

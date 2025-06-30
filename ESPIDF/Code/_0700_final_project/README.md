@@ -13,6 +13,8 @@
     This project is adapted from my personal expansion board for esp32 so will configure the objects in each layer to match it. Not sure if it will be suitable for all basic purposes.
     ```
 
+---
+
 # Project Layered Architecture
 ## Layer 1: **System architecture infrastructure**
 - [Reference libraries](./components/_00_reference_libs/README.md)
@@ -26,14 +28,14 @@
     - [Internal peripherals]
         - Initialize this microcontroller available peripherals and wifi driver
         - Using `Task sync tools` and is called by upper layer devices `Layer 3` when communication with internal peripherals is required.
-    - `List designed`: i2c, spi, ledc, mcpwm, gpio, wifi 
-    - `List Coming soon`: adc, i2s, uart, rmt
+    - `List designed`: i2c, spi, ledc, mcpwm, gpio, wifi ,adc, i2s
+    - `List Coming soon`:  uart, rmt
 - Layer 2_2:
     - [External peripherals]
         - External peripherals extend the capabilities of `internal peripherals`
         - Using `Task sync tools` and is called by upper layer devices `Layer 3` when communication with external peripherals is required.
-    - `List designed`: 74HC165, 74HC595
-    - `Coming soon`: 74HC4067, rs485, i2s_max98537
+    - `List designed`: 74HC165, 74HC595, 74HC4067, i2s_max98537
+    - `Coming soon`: rs485
 - Layer 2_3:
     - [Internal devices]
         - These are add-on devices that extend the capabilities of the microcontroller
@@ -97,10 +99,12 @@
     - Layer 4: System drivers and user drivers
         - Initialize internal control driver
             - System driver:
-                - Maintain system driver ( update, sleep (commingsoon), reset factory(commingsoon) )
+                - Maintain system driver: update, reset systemfolder 
+                    - Commingsoon: sleep , reset factory
             - Widget driver:
                 - Timer driver ( scheduling with clock device, update rtc with sntp)
                 - Network driver (implement protocol - Application layer in TCP/IP model)
+                    - HTTP server, MQTT client
                 - Speaker player driver
                     - Check `Read/Write file driver` before run file
                     - Ensures synchronized audio `file` playback through a single device

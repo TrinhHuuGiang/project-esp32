@@ -23,6 +23,9 @@
         "esp_vfs_fat.h": "c",
         "stat.h": "c",
         "io.h": "c",
-        "cjson.h": "c"
+        "cjson.h": "c",
+        "deploy_lb.h": "c",
+        "logic_test_design_port.h": "c",
+        "widdr_net_mqtt_manager.h": "c"
     }
 }
