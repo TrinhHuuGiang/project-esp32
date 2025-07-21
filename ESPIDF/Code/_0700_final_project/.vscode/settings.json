@@ -26,6 +26,7 @@
         "cjson.h": "c",
         "deploy_lb.h": "c",
         "logic_test_design_port.h": "c",
-        "widdr_net_mqtt_manager.h": "c"
+        "widdr_net_mqtt_manager.h": "c",
+        "esp_err.h": "c"
     }
 }

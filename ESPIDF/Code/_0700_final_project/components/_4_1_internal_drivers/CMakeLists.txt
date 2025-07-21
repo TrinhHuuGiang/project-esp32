@@ -6,6 +6,8 @@ idf_component_register(
     "widDr_net_mqtt_manager.c"
     "widDr_wav_player.c"
     "widDr_time_schedule.c"
+    
+    "sysDr_http_update.c"
 
     INCLUDE_DIRS
     "."
@@ -22,6 +24,6 @@ idf_component_register(
     
     i2c_ds3231 i2c_ssd1306 spi_sd_card #2.3
 
-    SNTP_rtc MQTT_client_lib #2.4
+    SNTP_rtc MQTT_client_lib HTTP_server_lib #2.4
     )
     

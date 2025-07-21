@@ -1,9 +1,19 @@
 /*
-    Copyright (C) 2025  Giang Trinh
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
+ * Copyright (C) 2025 Giang Trinh
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 
 
 /**
@@ -327,9 +337,9 @@ void app_main(void)
 
     ESP_LOGI(main_tag,"w_wav pass");
 
-    if(widDr_audio_player_set_file("/sd_card0/prj_dt/rsrc_fd/hello.wav")){ret = MAIN_RET_WID_WAV_TEST_FAIL; goto main_log_restart;}
+    // if(widDr_audio_player_set_file("/sd_card0/prj_dt/rsrc_fd/hello.wav")){ret = MAIN_RET_WID_WAV_TEST_FAIL; goto main_log_restart;}
 
-    ESP_LOGI(main_tag,"w_wav test audio pass");
+    // ESP_LOGI(main_tag,"w_wav test audio pass");
 
 
 

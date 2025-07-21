@@ -1,9 +1,19 @@
 /*
-    Copyright (C) 2025  Giang Trinh
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
+ * Copyright (C) 2025 Giang Trinh
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 
 // API:
 //   - start driver handle open 1 wav at a time
@@ -187,9 +197,6 @@ static void audio_player_task(void *param)
 
 
 
-
-
-
             // check file exist in file system
             take_cs_spi_mutex(); // take cs spi mutex
             if(gpio_74HC595_set_output_bit(1<<GPIO_74HC595_OUTPUT_SPI_SDCS, 0)) 
@@ -207,7 +214,26 @@ static void audio_player_task(void *param)
             // check file exist
             struct stat st;
             if (stat(local_path, &st) != 0)
+            {
+
+                if(gpio_74HC595_set_output_bit(1<<GPIO_74HC595_OUTPUT_SPI_SDCS, 1<<GPIO_74HC595_OUTPUT_SPI_SDCS))
+                {
+                    release_cs_spi_mutex();
+
+                    ESP_LOGE(WIDDR_WAV_PLAYER,"release cs spi failed, file might not close!!!");
+
+                    ret = 3; // end task
+                    g_task_sync_tools->err_flag = 1; // notify main stop
+                    goto delay_audio_task;
+                }
+                // release cs spi mutex
+                release_cs_spi_mutex();
+
+                ESP_LOGW(WIDDR_WAV_PLAYER,"File name not exist");
+
                 goto delay_audio_task;// file not exist -> sleep
+            }
+                
 
             
             if(gpio_74HC595_set_output_bit(1<<GPIO_74HC595_OUTPUT_SPI_SDCS, 1<<GPIO_74HC595_OUTPUT_SPI_SDCS))
@@ -237,12 +263,14 @@ static void audio_player_task(void *param)
             if (!ext || strcasecmp(ext, ".wav") != 0)
             {
                 // file invalid type
+                if(!ext)
+                {ESP_LOGW(WIDDR_WAV_PLAYER,"Invalid file type [no tail]");}
+                else 
+                {ESP_LOGW(WIDDR_WAV_PLAYER,"Invalid file type [%s]]", ext);}
+
                 goto delay_audio_task; // file type wrong -> sleep
 
             }
-
-
-
 
 
 
@@ -272,6 +300,19 @@ static void audio_player_task(void *param)
             file_ptr = fopen(local_path, "rb");
             if (!file_ptr) 
             {
+                if(gpio_74HC595_set_output_bit(1<<GPIO_74HC595_OUTPUT_SPI_SDCS, 1<<GPIO_74HC595_OUTPUT_SPI_SDCS))
+                {
+                    release_cs_spi_mutex();
+
+                    ESP_LOGE(WIDDR_WAV_PLAYER,"release cs spi failed, file might not close!!!");
+
+                    ret = 3; // end task
+                    g_task_sync_tools->err_flag = 1; // notify main stop
+                    goto delay_audio_task;
+                }
+                // release cs spi mutex
+                release_cs_spi_mutex();
+
                 ret = 5; // end task
                 g_task_sync_tools->err_flag = 1; // notify main stop
                 goto delay_audio_task;
@@ -316,8 +357,6 @@ static void audio_player_task(void *param)
             }
             // release cs spi mutex
             release_cs_spi_mutex();
-
-
 
 
 
@@ -399,9 +438,6 @@ static void audio_player_task(void *param)
 
 
 
-
-
-
 //-----------------------------------------------------------
 //-------------------------- get data to audio -------------------------
 //-----------------------------------------------------------
@@ -471,9 +507,17 @@ static void audio_player_task(void *param)
             fread(pcm_buf,1,WIDDR_AUDIO_BUFFER_DISPLAY_SIZE,file_ptr); // read data  
             
             {
-                uint8_t retry_read = WIDDR_AUDIO_RETRY_FREAD_TIME_IF_FAIL;  // << i don't know why but when i try fread at first time
+                uint8_t retry_read = WIDDR_AUDIO_RETRY_FREAD_TIME_IF_FAIL;  
+
+
+                                        // << i don't know why but when i try fread at first time
                                         // it always get error
                                         // sometime when i retry read, this problen reach
+
+                                        // I guess that because 74hc595 is use the same SPI bus
+                                        // the last command remove cs pin, command bit to 595 is
+                                        // dummy bit with sd card -> wrong connect
+
                 // try check error
                 if(ferror(file_ptr))
                 {

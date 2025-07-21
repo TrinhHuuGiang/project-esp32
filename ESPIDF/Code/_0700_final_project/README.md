@@ -137,6 +137,7 @@
             |            Register_logic_block ("/lgb_init.dat") // type json format
             |            |
             |            Pem cert MQTT ("/mqttcert.pem") // pem certificate . string file
+            |            |
             |            MQTT_config ("/mqtt_cf.dat") // type json format
             |                                          // include: broker uri, username, password
             |
