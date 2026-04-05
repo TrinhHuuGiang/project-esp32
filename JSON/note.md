@@ -6,19 +6,28 @@
 - Tệp JSON có phần mở rộng .json.
 
 ## Cú pháp
-1. Các dữ liệu trong JSON được viết dưới dạng các cặp `name:value`:
+1. Các dữ liệu trong JSON được viết dưới dạng các đối tượng {name:value}:
     - `name` là một chuỗi đại diện cho 1 dữ liệu nào đó.
     - Theo sau là `:` và `value` đại điện cho giá trị.
-    - các định dạng của `value` hợp lệ là:
-        - `chuỗi` (string) có `value` là chuỗi
+    - Các định dạng của `value` hợp lệ là:
+        - `value` là chuỗi
             - ví dụ: {"Name":"Jame"}
-        - số (number) có `value` là số nguyên hoặc số thực
+        - `value` là số nguyên hoặc số thực
             - ví dụ: {"Number": 1}, các số có thể là 10, 3.14, -5
-        - đối tượng JSON (`JSON object`) có `value` là các `đối tượng JSON` được khác được cách bởi `,` hoặc là các biểu diễn kiểu dữ liệu khác
-            - ví dụ: {"Object_name":{ "name1":"value1", "name2":value2 }}
-        - `mảng` (array) có `value` là các định dạng `value` khác phân cách bởi dấu `,`
-            - ví dụ: {"Number":[true,fale,2,3,"bon","nam"]}
-        - `Boolean` có `value` là `true` hoặc `false`
+        - `value` là các `thuộc tính` được khác được cách bởi `,`
+            - ví dụ:
+            - ```JSON
+              {"Object_name":
+                  {
+                      "name1":"value1",
+                      "name2":value2
+                  }
+              }
+              ```
+        - `value` là `mảng` (array), có các các định dạng khác nhau, phân cách bởi `,`
+            - ví dụ: {"Number":[true,fale,2,3,"bon","nam", {"name":"value}]}
+            - mảng có thể gồm các loại value ở trên và chính đối tượng JSON.
+        - `value` là `boolean` nhận `true` hoặc `false`
             - ví dụ: {"Bool":true}
         - null
             - ví dụ: {"Null":null}
