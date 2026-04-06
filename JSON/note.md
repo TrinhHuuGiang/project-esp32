@@ -12,17 +12,14 @@
 
     {"name":"value"}
 
-    - "name" là tên thuộc tính
-    - Sau dấu : là giá trị của thuộc tính
-    - Giá trị có thể là:
-
+- "name" là tên thuộc tính
+- Sau dấu : là giá trị của thuộc tính
+- Giá trị có thể là:
     - Chuỗi
         {"Name":"James"}
-
     - Số nguyên hoặc số thực
         {"Number":1}
         {"Pi":3.14}
-
     - Một object khác
         {
             "Object_name":
@@ -31,7 +28,7 @@
                 "name2":"value2"
             }
         }
-
+      
         Trong ví dụ trên:
         - object ngoài cùng có 1 thuộc tính là "Object_name"
         - giá trị của "Object_name" là một object khác
